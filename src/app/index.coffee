@@ -1,13 +1,13 @@
 derby = require 'derby'
 
-# Include library components
-derby.use require('derby-ui-boot'), {styles: []}
-derby.use require '../../ui'
-derby.use require 'derby-auth/components'
-
 # Init app & reference its functions
 app = derby.createApp module
 {get, view, ready} = app
+
+# Include library components
+app.use require('derby-ui-boot'), {styles: []}
+app.use require '../../ui'
+app.use require 'derby-auth/components'
 
 # Translations
 i18n = require './i18n'
