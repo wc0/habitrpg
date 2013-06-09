@@ -107,6 +107,14 @@ ready (model) ->
   user = model.at('_user')
   misc.fixCorruptUser(model) # https://github.com/lefnire/habitrpg/issues/634
 
+  #FIXME this should only be called once, on initial empty database
+  model.setNull "groups.habitrpg",
+    chat: []
+    id: "habitrpg"
+    leader: "9"
+    name: "HabitRPG"
+    type: "guild"
+
   browser = require './browser'
   require('./tasks').app(exports, model)
   require('./items').app(exports, model)

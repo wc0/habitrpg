@@ -5,6 +5,12 @@ module.exports.app = (appExports, model) ->
   browser = require './browser'
   user = model.at '_user'
 
+  setupReflists = ->
+    _.each model.get('groups'), (g) ->
+      model.setNull "groups.#{g.id}.ids.challenges", []
+      model.refList "_page.lists.groups.#{g.id}.challenges", "groups.#{g.id}.challenges", "groups.#{g.id}.ids.challenges"
+  setupReflists()
+
   $('#profile-challenges-tab-link').on 'show', (e) ->
     _.each model.get('groups'), (g) ->
       _.each g.challenges, (chal) ->
@@ -28,29 +34,40 @@ module.exports.app = (appExports, model) ->
 
   appExports.challengeCreate = (e,el) ->
     [type, gid] = [$(el).attr('data-type'), $(el).attr('data-gid')]
-    model.set '_challenge.new',
+    cid = model.id()
+    model.set '_page.new.challenge',
+      id: cid
       name: ''
-      habits: []
-      dailys: []
-      todos: []
-      rewards: []
-      id: model.id()
-      uid: user.get('id')
-      user: helpers.username(model.get('_user.auth'), model.get('_user.profile.name'))
+      tasks: {}
+      ids:
+        habits: []
+        dailys: []
+        todos: []
+        rewards: []
+      user:
+        uid: user.get('id')
+        name: helpers.username(model.get('_user.auth'), model.get('_user.profile.name'))
       group: {type, id:gid}
       timestamp: +new Date
+    _.each ['habits','dailys','todos','rewards'], (type) ->
+      model.refList "_page.lists.groups.#{gid}.challenges.#{cid}.#{type}", "_page.new.challenge.tasks", "_page.new.challenge.ids.#{type}"
 
   appExports.challengeSave = ->
-    gid = model.get('_challenge.new.group.id')
-    model.unshift "groups.#{gid}.challenges", model.get('_challenge.new'), ->
+    newChal = model.get('_page.new.challenge')
+    [gid, cid] = [newChal.group.id, newChal.id]
+    model.unshift "_page.lists.groups.#{gid}.challenges", newChal, ->
+      debugger
+      _.each ['habits','dailys','todos','rewards'], (type) ->
+        model.del "_page.lists.groups.#{gid}.challenges.#{cid}.#{type}" #remove old refList
+        model.refList "_page.lists.groups.#{gid}.challenges.#{cid}.#{type}", "groups.#{gid}.challenges.#{cid}.tasks", "groups.#{gid}.challenges.#{cid}.ids.#{type}"
       browser.growlNotification('Challenge Created','success')
       challengeDiscard()
 
   appExports.toggleChallengeEdit = (e, el) ->
-    path = "_editing.challenges.#{$(el).attr('data-id')}"
+    path = "_page.editing.challenges.#{$(el).attr('data-id')}"
     model.set path, !model.get(path)
 
-  appExports.challengeDiscard = challengeDiscard = -> model.del '_challenge.new'
+  appExports.challengeDiscard = challengeDiscard = -> model.del '_new.challenge'
 
   appExports.challengeSubscribe = (e) ->
     chal = e.get()

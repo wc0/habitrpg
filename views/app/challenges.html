@@ -12,7 +12,7 @@
                 {{#unless _party.id}}
                     Join a party first.
                 {{else}}
-                    {#if _challenge.new}
+                    {#if _page.new.challenge}
                         <app:challenges:create-form />
                     {else}
                         <!-- FIXME https://github.com/codeparty/derby/issues/267, see _guilds.challenges below -->
@@ -32,8 +32,8 @@
                 </ul>
                 <div class="tab-content">
                     {{#each _guilds as :guild}}
-                        <div class="tab-pane {{#if equal($index,0)}}active{{/}}" id="challenges-guild-{:guild.id}">
-                            {#if _challenge.new}
+                        <div class="tab-pane {{#if equal($index,0)}}active{{/}}" id="challenges-guild-{{:guild.id}}">
+                            {#if _page.new.challenge}
                                 <app:challenges:create-form />
                             {else}
                                 <app:challenges:create-button type='guild' gid={{:guild.id}} text='Guild' />
@@ -48,7 +48,7 @@
             </div>
 
             <div class="tab-pane" id="challengesViewPublic">
-                {#if _challenge.new}
+                {#if _page.new.challenge}
                     <app:challenges:create-form />
                 {else}
                     <app:challenges:create-button type='public' gid='habitrpg' text='Public' />
@@ -170,7 +170,7 @@
         </div>
 
         <div class='challenge-options'>
-            <input type='text' class='option-content' value={_challenge.new.name} placeholder="Challenge Title" required />
+            <input type='text' class='option-content' value={_page.new.challenge.name} placeholder="Challenge Title" required />
         </div>
 
         <!--<fieldset>
@@ -216,10 +216,10 @@
 
     <div class="grid">
         <app:tasks:task-lists
-                habits={_challenge.new.habits}
-                dailys={_challenge.new.dailys}
-                todos={_challenge.new.todos}
-                rewards={_challenge.new.rewards}
+                habits={_page.lists.groups[_page.new.challenge.group.id].challenges[_page.new.challenge.id].habits}
+                dailys={_page.lists.groups[_page.new.challenge.group.id].challenges[_page.new.challenge.id].dailys}
+                todos={_page.lists.groups[_page.new.challenge.group.id].challenges[_page.new.challenge.id].todos}
+                rewards={_page.lists.groups[_page.new.challenge.group.id].challenges[_page.new.challenge.id].rewards}
                 editable=true />
     </div>
 
