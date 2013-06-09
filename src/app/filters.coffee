@@ -1,5 +1,4 @@
 _ = require 'lodash'
-browser = require './browser'
 
 module.exports.app = (appExports, model) ->
   user = model.at('_user')
@@ -15,9 +14,7 @@ module.exports.app = (appExports, model) ->
     model.set '_newTag', ''
 
   appExports.toggleEditingTags = ->
-    before = model.get('_editingTags')
-    model.set '_editingTags', !before, ->
-      location.reload() if before is true #when they're done, refresh the page
+    model.set '_editingTags', !model.get('_editingTags')
 
   appExports.clearFilters = ->
     user.set 'filters', {}
