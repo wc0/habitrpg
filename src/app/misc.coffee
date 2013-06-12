@@ -35,8 +35,11 @@ indexedPath = ->
 
 taskInChallenge = (task) ->
   return undefined unless task?.challenge
-  @model.at indexedPath.call(@, "groups.#{task.group.id}.challenges", {id:task.challenge}, "#{task.type}s", {id:task.id})
+  @model.at "groups.#{task.group.id}.challenges.#{task.challenge}.tasks.#{task.id}"
 
+###
+  Setup all _page reflists - required on server first to render page
+###
 module.exports.setupRefLists = (model) ->
   types = ['habit', 'daily', 'todo', 'reward']
 
@@ -50,10 +53,11 @@ module.exports.setupRefLists = (model) ->
     model.refList "_page.lists.#{gpath}.challenges", "#{gpath}.challenges", "#{gpath}.ids.challenges"
 
     ## Groups -> Challenges
-    _.each g.challenges, (c) ->
-      _.each types, (type) ->
-        cpath = "#{gpath}.challenges.#{c.id}"
-        model.refList "_page.lists.#{cpath}.#{type}s", "#{cpath}.tasks", "#{gpath}.ids.#{type}s"
+    unless _.isEmpty g.challenges
+      _.each g.challenges, (c) ->
+        _.each types, (type) ->
+          cpath = "challenges.#{c.id}"
+          model.refList "_page.lists.#{cpath}.#{type}s", "#{gpath}.#{cpath}.tasks", "#{gpath}.#{cpath}.ids.#{type}s"
 
 ###
   algos.score wrapper for habitrpg-helpers to work in Derby. We need to do model.set() instead of simply setting the
@@ -85,7 +89,7 @@ module.exports.score = (model, taskId, direction, allowUndo=false) ->
     if (chalTask = taskInChallenge.call({model}, tObj)) and chalTask?.get()
       model._dontPersist = false
       chalTask.incr "value", delta
-      chal = model.at indexedPath.call({model}, "groups.#{tObj.group.id}.challenges", {id:tObj.challenge})
+      chal = model.at "groups.#{tObj.group.id}.challenges.#{tObj.challenge}"
       chalUser = -> indexedPath.call({model}, chal.path(), 'users', {id:uObj.id})
       cu = model.at chalUser()
       unless cu?.get()
@@ -223,12 +227,13 @@ module.exports.viewHelpers = (view) ->
 
   #Challenges
   view.fn 'taskInChallenge', (task) ->
-    taskInChallenge.call(@,task)?.get()
+    task?.challenge and taskInChallenge.call(@,task)?.get()
   view.fn 'taskAttrFromChallenge', (task, attr) ->
     taskInChallenge.call(@,task)?.get(attr)
   view.fn 'brokenChallengeLink', (task) ->
     task?.challenge and !(taskInChallenge.call(@,task)?.get())
 
-  view.fn 'challengeMemberScore', (member, tType, tid) ->
-    Math.round(member["#{tType}s"]?[tid]?.value)
+  view.fn 'challengeMemberScore', (member, task) ->
+    return unless member
+    Math.round(member["#{task.type}s"]?[task.id]?.value)
 

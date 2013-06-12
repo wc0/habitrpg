@@ -43,19 +43,18 @@ module.exports.app = (appExports, model) ->
         name: helpers.username(model.get('_user.auth'), model.get('_user.profile.name'))
       group: {type, id:gid}
       timestamp: +new Date
-    debugger
     _.each ['habits','dailys','todos','rewards'], (type) ->
-      model.refList "_page.lists.groups.#{gid}.challenges.#{cid}.#{type}", "_page.new.challenge.tasks", "_page.new.challenge.ids.#{type}"
+      model.refList "_page.lists.challenges.#{cid}.#{type}", "_page.new.challenge.tasks", "_page.new.challenge.ids.#{type}"
 
   appExports.challengeSave = ->
+    debugger
     newChal = model.get('_page.new.challenge')
     [gid, cid] = [newChal.group.id, newChal.id]
-    model.setNull "groups.#{gid}.ids.challenges", []
     model.unshift "_page.lists.groups.#{gid}.challenges", newChal, ->
       debugger
       _.each ['habits','dailys','todos','rewards'], (type) ->
-        model.del "_page.lists.groups.#{gid}.challenges.#{cid}.#{type}" #remove old refList
-        model.refList "_page.lists.groups.#{gid}.challenges.#{cid}.#{type}", "groups.#{gid}.challenges.#{cid}.tasks", "groups.#{gid}.challenges.#{cid}.ids.#{type}"
+        model.del "_page.lists.challenges.#{cid}.#{type}" #remove old refList
+        model.refList "_page.lists.challenges.#{cid}.#{type}", "groups.#{gid}.challenges.#{cid}.tasks", "groups.#{gid}.challenges.#{cid}.ids.#{type}"
       browser.growlNotification('Challenge Created','success')
       challengeDiscard()
 
@@ -63,7 +62,7 @@ module.exports.app = (appExports, model) ->
     path = "_page.editing.challenges.#{$(el).attr('data-id')}"
     model.set path, !model.get(path)
 
-  appExports.challengeDiscard = challengeDiscard = -> model.del '_new.challenge'
+  appExports.challengeDiscard = challengeDiscard = -> model.del '_page.new.challenge'
 
   appExports.challengeSubscribe = (e) ->
     chal = e.get()
@@ -77,20 +76,18 @@ module.exports.app = (appExports, model) ->
     # Add all challenge's tasks to user's tasks
     userChallenges = user.get('challenges')
     user.unshift('challenges', chal.id) unless userChallenges and (userChallenges.indexOf(chal.id) != -1)
-    _.each ['habit', 'daily', 'todo', 'reward'], (type) ->
-      _.each chal["#{type}s"], (task) ->
-        task.tags = tags
-        task.challenge = chal.id
-        task.group = {id: chal.group.id, type: chal.group.type}
-        model.push("_#{type}List", task)
-        true
+    _.each chal.tasks, (task) ->
+      task.tags = tags
+      task.challenge = chal.id
+      task.group = {id: chal.group.id, type: chal.group.type}
+      model.push("_#{task.type}List", task)
+      true
 
   appExports.challengeUnsubscribe = (e) ->
     chal = e.get()
     i = user.get('challenges')?.indexOf chal.id
     user.remove("challenges.#{i}") if i? and i != -1
-    _.each ['habit', 'daily', 'todo', 'reward'], (type) ->
-      _.each chal["#{type}s"], (task) ->
-        model.remove "_#{type}List", _.findIndex(model.get("_#{type}List",{id:task.id}))
-        model.del "_user.tasks.#{task.id}"
-        true
+    _.each chal.tasks, (task) ->
+      model.remove "_#{type}List", _.findIndex(model.get("_#{type}List",{id:task.id}))
+      model.del "_user.tasks.#{task.id}"
+      true

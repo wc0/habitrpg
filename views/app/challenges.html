@@ -17,7 +17,7 @@
                     {else}
                         <!-- FIXME https://github.com/codeparty/derby/issues/267, see _guilds.challenges below -->
                         <app:challenges:create-button type='party' gid={{_party.id}} text='Party'/>
-                        {#each _party.challenges as :challenge}
+                        {#each _page.lists.groups[_party.id].challenges as :challenge}
                             <app:challenges:listing challenge={:challenge} />
                         {/}
                     {/}
@@ -37,8 +37,8 @@
                                 <app:challenges:create-form />
                             {else}
                                 <app:challenges:create-button type='guild' gid={{:guild.id}} text='Guild' />
-                                {#each :guild.challenges as :challenge}
-                                    <app:challenges:listing challenge={groups[:guild.id].challenges[$index]} />
+                                {#each :guild.ids.challenges as :challengeId}
+                                    <app:challenges:listing challenge={_page.lists.challenges[:challengeId]} />
                                 {/}
                                 <hr/>
                             {/}
@@ -52,8 +52,8 @@
                     <app:challenges:create-form />
                 {else}
                     <app:challenges:create-button type='public' gid='habitrpg' text='Public' />
-                    {#each _habitRPG.challenges as :challenge}
-                        <app:challenges:listing challenge={groups.habitrpg.challenges[$index]} />
+                    {#each _habitRPG.ids.challenges as :challengeId}
+                        <app:challenges:listing challenge={_page.lists.challenges[:challengeId]} />
                     {/}
                 {/}
             </div>
@@ -80,7 +80,7 @@
                     <a x-bind="click:challengeSubscribe" class='btn btn-small btn-success {#if indexOf(_user.challenges,@challenge.id)}hidden{/}'><i class='icon-ok'></i> Subscribe</a>
                 </li>
             </ul>
-            <a class="accordion-toggle" data-toggle="collapse" href="#accordion-challenge-{{@challenge.id}}">{@challenge.name} (by {@challenge.user})</a>
+            <a class="accordion-toggle" data-toggle="collapse" href="#accordion-challenge-{{@challenge.id}}">{@challenge.name} (by {@challenge.user.name})</a>
 
 
         </div>
@@ -118,10 +118,11 @@
                 <div class="grid">
                     <app:tasks:task-lists
                             editable={_editing.challenges[@challenge.id]}
-                            habits={@challenge.habits}
-                            dailys={@challenge.dailys}
-                            todos={@challenge.todos}
-                            rewards={@challenge.rewards} />
+                            habits={_page.lists.challenges[@challenge.id].habits}
+                            dailys={_page.lists.challenges[@challenge.id].dailys}
+                            todos={_page.lists.challenges[@challenge.id].todos}
+                            rewards={_page.lists.challenges[@challenge.id].rewards}
+                            />
                 </div>
 
                 <h3>Statistics</h3>
@@ -129,13 +130,13 @@
                     <h4>{:member.name}</h4>
                     <div class="grid">
                         <div class="module">
-                            <app:challenges:stats header=Habits challenge={@challenge} member={:member} taskType=habit />
+                            <app:challenges:stats header=Habits challenge={@challenge} member={:member} list={_page.lists.challenges[@challenge.id].habits} />
                         </div>
                         <div class="module">
-                            <app:challenges:stats header=Dailies challenge={@challenge} member={:member} taskType=daily />
+                            <app:challenges:stats header=Dailies challenge={@challenge} member={:member} list={_page.lists.challenges[@challenge.id].dailys}  />
                         </div>
                         <div class="module">
-                            <app:challenges:stats header=Todos challenge={@challenge} member={:member} taskType=todos />
+                            <app:challenges:stats header=Todos challenge={@challenge} member={:member} list={_page.lists.challenges[@challenge.id].todos}  />
                         </div>
                     </div>
                 {/}
@@ -146,11 +147,11 @@
 <stats:>
     <h5>{@header}</h5>
     <div>
-    {#each @challenge[@taskType]s as :task}
+    {#each @list as :task}
         <table><tr>
             <td>
                 <!-- FIXME commented section below isn't getting updated dynamically, temp solution is less efficient -->
-                <strong>{:task.text}</strong>: {challengeMemberScore(@member,@taskType,:task.id)} <!--{round(@member[@taskType]s[:task.id].value)}-->
+                <strong>{:task.text}</strong>: {challengeMemberScore(@member,:task)} <!--{round(@member[@taskType]s[:task.id].value)}-->
             </td>
             <td>
                 <div style='margin-left: 10px' class="challenge-{{@challenge.id}}-member-{{@member.id}}-history-{{:task.id}}"></div>
@@ -216,9 +217,9 @@
 
     <div class="grid">
         <app:tasks:task-lists
-                habits={_page.lists.groups[_page.new.challenge.group.id].challenges[_page.new.challenge.id].habits}
-                dailys={_page.lists.groups[_page.new.challenge.group.id].challenges[_page.new.challenge.id].dailys}
-                todos={_page.lists.groups[_page.new.challenge.group.id].challenges[_page.new.challenge.id].todos}
-                rewards={_page.lists.groups[_page.new.challenge.group.id].challenges[_page.new.challenge.id].rewards}
+                habits={_page.lists.challenges[_page.new.challenge.id].habits}
+                dailys={_page.lists.challenges[_page.new.challenge.id].dailys}
+                todos={_page.lists.challenges[_page.new.challenge.id].todos}
+                rewards={_page.lists.challenges[_page.new.challenge.id].rewards}
                 editable=true />
     </div>
