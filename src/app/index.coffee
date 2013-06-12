@@ -94,10 +94,7 @@ get '/', (page, model, params, next) ->
   # removed force-ssl (handled in nginx), see git for code
   setupSubscriptions page, model, params, next, ->
     require('./items').server(model)
-    #refLists
-    _.each ['habit', 'daily', 'todo', 'reward'], (type) ->
-      model.refList "_#{type}List", "_user.tasks", "_user.#{type}Ids"
-      true
+    misc.setupRefLists(model)
     page.render()
 
 

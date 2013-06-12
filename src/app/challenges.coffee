@@ -5,12 +5,6 @@ module.exports.app = (appExports, model) ->
   browser = require './browser'
   user = model.at '_user'
 
-  setupReflists = ->
-    _.each model.get('groups'), (g) ->
-      model.setNull "groups.#{g.id}.ids.challenges", []
-      model.refList "_page.lists.groups.#{g.id}.challenges", "groups.#{g.id}.challenges", "groups.#{g.id}.ids.challenges"
-  setupReflists()
-
   $('#profile-challenges-tab-link').on 'show', (e) ->
     _.each model.get('groups'), (g) ->
       _.each g.challenges, (chal) ->
@@ -49,12 +43,14 @@ module.exports.app = (appExports, model) ->
         name: helpers.username(model.get('_user.auth'), model.get('_user.profile.name'))
       group: {type, id:gid}
       timestamp: +new Date
+    debugger
     _.each ['habits','dailys','todos','rewards'], (type) ->
       model.refList "_page.lists.groups.#{gid}.challenges.#{cid}.#{type}", "_page.new.challenge.tasks", "_page.new.challenge.ids.#{type}"
 
   appExports.challengeSave = ->
     newChal = model.get('_page.new.challenge')
     [gid, cid] = [newChal.group.id, newChal.id]
+    model.setNull "groups.#{gid}.ids.challenges", []
     model.unshift "_page.lists.groups.#{gid}.challenges", newChal, ->
       debugger
       _.each ['habits','dailys','todos','rewards'], (type) ->

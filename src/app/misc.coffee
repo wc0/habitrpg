@@ -37,6 +37,24 @@ taskInChallenge = (task) ->
   return undefined unless task?.challenge
   @model.at indexedPath.call(@, "groups.#{task.group.id}.challenges", {id:task.challenge}, "#{task.type}s", {id:task.id})
 
+module.exports.setupRefLists = (model) ->
+  types = ['habit', 'daily', 'todo', 'reward']
+
+  ## User
+  _.each types, (type) ->
+    model.refList "_#{type}List", "_user.tasks", "_user.#{type}Ids"
+
+  ## Groups
+  _.each model.get('groups'), (g) ->
+    gpath = "groups.#{g.id}"
+    model.refList "_page.lists.#{gpath}.challenges", "#{gpath}.challenges", "#{gpath}.ids.challenges"
+
+    ## Groups -> Challenges
+    _.each g.challenges, (c) ->
+      _.each types, (type) ->
+        cpath = "#{gpath}.challenges.#{c.id}"
+        model.refList "_page.lists.#{cpath}.#{type}s", "#{cpath}.tasks", "#{gpath}.ids.#{type}s"
+
 ###
   algos.score wrapper for habitrpg-helpers to work in Derby. We need to do model.set() instead of simply setting the
   object properties, and it's very difficult to diff the two objects and find dot-separated paths to set. So we to first

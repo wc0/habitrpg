@@ -19,6 +19,7 @@ module.exports.app = (appExports, model, app) ->
       leader: user.get('id')
       members: [user.get('id')]
       type: type
+      ids: {challenges: []}
 
     # parties - free
     if type is 'party'
