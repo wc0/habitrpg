@@ -36,8 +36,9 @@ db.users.find({
 /**
  * Remove empty parties
  */
-db.users.groups.remove({
-    $where: function(){ return this.type === 'party' && this.members.length === 0; }
+db.groups.remove({
+    'type': 'party',
+    $where: "return this.members.length === 0"
 });
 
 /**
