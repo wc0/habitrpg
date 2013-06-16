@@ -38,7 +38,7 @@
                             {else}
                                 <app:challenges:create-button type='guild' gid={{:guild.id}} text='Guild' />
                                 {#each :guild.ids.challenges as :challengeId}
-                                    <app:challenges:listing challenge={_page.lists.challenges[:challengeId]} />
+                                    <app:challenges:listing challenge={groups.challenges[:challengeId]} />
                                 {/}
                                 <hr/>
                             {/}
@@ -52,8 +52,8 @@
                     <app:challenges:create-form />
                 {else}
                     <app:challenges:create-button type='public' gid='habitrpg' text='Public' />
-                    {#each _habitRPG.ids.challenges as :challengeId}
-                        <app:challenges:listing challenge={_page.lists.challenges[:challengeId]} />
+                    {#each _page.lists.groups.habitrpg.challenges as :challenge}
+                        <app:challenges:listing challenge={:challenge} />
                     {/}
                 {/}
             </div>
@@ -76,8 +76,10 @@
                 </li>
                 <li>
                     <!-- subscribe / unsubscribe -->
+                    {#with @challenge}
                     <a x-bind="click:challengeUnsubscribe" class='btn btn-small btn-danger {#unless indexOf(_user.challenges,@challenge.id)}hidden{/}'><i class='icon-ban-circle'></i> Unsubscribe</a>
                     <a x-bind="click:challengeSubscribe" class='btn btn-small btn-success {#if indexOf(_user.challenges,@challenge.id)}hidden{/}'><i class='icon-ok'></i> Subscribe</a>
+                    {/}
                 </li>
             </ul>
             <a class="accordion-toggle" data-toggle="collapse" href="#accordion-challenge-{{@challenge.id}}">{@challenge.name} (by {@challenge.user.name})</a>

@@ -1,2 +1,7 @@
-db.groups.update({}, {$set: {ids: {challenges:[]}} }, {multi:1});
+db.groups.update({}, {
+    $set: {
+        challenges: {},
+        ids: {challenges:[]}
+    }
+}, {multi:1});
 

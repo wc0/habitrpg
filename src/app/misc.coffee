@@ -235,5 +235,5 @@ module.exports.viewHelpers = (view) ->
 
   view.fn 'challengeMemberScore', (member, task) ->
     return unless member
-    Math.round(member["#{task.type}s"]?[task.id]?.value)
+    Math.round(member["#{task.type}s"]?[task.id]?.value) || 0
 
