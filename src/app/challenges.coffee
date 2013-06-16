@@ -44,7 +44,7 @@ module.exports.app = (appExports, model) ->
   ###
     Render graphs for user scores when the "Challenges" tab is clicked
   ###
-  $('#profile-challenges-tab-link').on 'show', ->
+  $('#profile-challenges-tab-link').on 'shown', ->
     async.each _.toArray(model.get('groups')), (g) ->
       async.each _.toArray(g.challenges), (chal) ->
         async.each _.toArray(chal.tasks), (task) ->
