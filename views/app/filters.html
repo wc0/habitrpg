@@ -5,11 +5,11 @@
     </div>
     <ul class="nav nav-pills">
       <li>
-          <a rel=tooltip title='Edit Tags' x-bind="click:toggleEditingTags"><i class='{#if _page.editingTags}icon-ok{else}icon-pencil{/}'></i></a>
+          <a rel=tooltip title='Edit Tags' x-bind="click:toggleEditingTags"><i class='{#if _page.editing.tags}icon-ok{else}icon-pencil{/}'></i></a>
       </li>
       {#each _user.tags as :tag}
         <li class="{#if users[_userId].filters[:tag.id]}active{/}" style='position:relative;'>
-            {#if and(_page.editingTags,not(:tag.challenge))}
+            {#if and(_page.editing.tags,not(:tag.challenge))}
                 <div class="input-append option-group tag-editing" >
                     <input class="input input-small option-content tag-editing-pill" type="text" value='{:tag.name}' />
                     <span class="add-on tag-editing-pill"><a class='pull-right' x-bind=click:filtersDeleteTag data-index="{$index}"><i class='icon-trash'></i></a></span>
@@ -20,7 +20,7 @@
         </li>
       {/}
       <li>
-          {#if _page.editingTags}
+          {#if _page.editing.tags}
               <form class='form-inline' x-bind="submit:filtersNewTag">
                   <div class="input-append tag-editing">
                       <input class="span2 tag-editing-pill" type="text" value={_newTag} placeholder="New Tag" />
