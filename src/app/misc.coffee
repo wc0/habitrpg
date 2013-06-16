@@ -33,6 +33,11 @@ indexedPath = ->
     return "#{m}." + _.findIndex(@model.get(m),v)
   , ''
 
+indexedAt = ->
+  path = indexedPath(@,arguments)
+  return undefined unless model.at(path).get()?
+  return model.at(path)
+
 taskInChallenge = (task) ->
   return undefined unless task?.challenge
   @model.at "groups.#{task.group.id}.challenges.#{task.challenge}.tasks.#{task.id}"
