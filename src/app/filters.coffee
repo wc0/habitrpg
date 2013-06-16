@@ -14,7 +14,7 @@ module.exports.app = (appExports, model) ->
     model.set '_newTag', ''
 
   appExports.toggleEditingTags = ->
-    model.set '_editingTags', !model.get('_editingTags')
+    model.set '_page.editingTags', !model.get('_page.editingTags')
 
   appExports.clearFilters = ->
     user.set 'filters', {}

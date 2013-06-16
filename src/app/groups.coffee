@@ -36,11 +36,11 @@ module.exports.app = (appExports, model, app) ->
         user.incr 'balance', -1, ->location.reload()
 
   appExports.toggleGroupEdit = (e, el) ->
-    path = "_editing.groups.#{$(el).attr('data-gid')}"
+    path = "_page.editing.groups.#{$(el).attr('data-gid')}"
     model.set path, !model.get(path)
 
   appExports.toggleLeaderMessageEdit = (e, el) ->
-    path = "_editing.leaderMessage.#{$(el).attr('data-gid')}"
+    path = "_page.editing.leaderMessage.#{$(el).attr('data-gid')}"
     model.set path, !model.get(path)
 
   appExports.groupAddWebsite = (e, el) ->

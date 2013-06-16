@@ -94,7 +94,7 @@
 
                 <!-- Edit button -->
                 <span style='position:absolute; right:0;'>
-                {#if and(not(_editing.challenges[@challenge.id]),equal(@challenge.uid,_user.id))}
+                {#if and(not(_page.editing.challenges[@challenge.id]),equal(@challenge.uid,_user.id))}
                     <ul class='nav nav-pills'><li>
                         <a x-bind='click:toggleChallengeEdit' data-id={{@challenge.id}} ><i class=icon-pencil></i></a>
                     </li></ul>
@@ -105,7 +105,7 @@
                 {/}
                 </span>
 
-                {#if _editing.challenges[@challenge.id]}
+                {#if _page.editing.challenges[@challenge.id]}
                     <div class='-options'>
                         <input type=text class='option-content' value={@challenge.name} />
                         <textarea cols=3 class='option-content' placeholder='Description'>{@challenge.description}</textarea>
@@ -119,7 +119,7 @@
 
                 <div class="grid">
                     <app:tasks:task-lists
-                            editable={_editing.challenges[@challenge.id]}
+                            editable={_page.editing.challenges[@challenge.id]}
                             habits={_page.lists.challenges[@challenge.id].habits}
                             dailys={_page.lists.challenges[@challenge.id].dailys}
                             todos={_page.lists.challenges[@challenge.id].todos}
