@@ -164,16 +164,15 @@ updateTasks = (tasks, user, model) ->
       if task.del
         user.del "tasks.#{task.id}"
         if task.type # TODO we should enforce they pass in type, so we can properly remove from idList
-          i = model.get("_#{task.type}List").indexOf(task.id)
-          model.remove("_#{task.type}List", i, 1) # doens't work when task.type isn't passed up
+          if (i = _.findIndex user.get("#{task.type}Ids"), {id: task.id}) != -1
+            user.remove("#{task.type}Ids", i, 1) # doens't work when task.type isn't passed up
         task = deleted: true
       else
         user.set "tasks.#{task.id}", task
     else
       type = task.type || 'habit'
-      model.ref '_user', user
-      model.refList "_#{type}List", "_user.tasks", "_user.#{type}Ids"
-      model.at("_#{type}List").push task
+      user.set "tasks.#{task.id}", task
+      user.push "#{type}Ids", task.id
     tasks[idx] = task
   return tasks
 
@@ -190,9 +189,8 @@ router.post '/user/task', auth, validateTask, (req, res) ->
   type = task.type
 
   model = req.getModel()
-  model.ref '_user', req.user
-  model.refList "_#{type}List", "_user.tasks", "_user.#{type}Ids"
-  model.at("_#{type}List").push task
+  user.set "tasks.#{task.id}", task
+  user.push "#{type}Ids", task.id
 
   res.json 201, task
 

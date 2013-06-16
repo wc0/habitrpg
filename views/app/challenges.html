@@ -17,7 +17,7 @@
                     {else}
                         <!-- FIXME https://github.com/codeparty/derby/issues/267, see _guilds.challenges below -->
                         <app:challenges:create-button type='party' gid={{_party.id}} text='Party'/>
-                        {#each _page.lists.groups[_party.id].challenges as :challenge}
+                        {#each _page.lists.challenges[_party.id] as :challenge}
                             <app:challenges:listing challenge={:challenge} />
                         {/}
                     {/}
@@ -37,8 +37,8 @@
                                 <app:challenges:create-form />
                             {else}
                                 <app:challenges:create-button type='guild' gid={{:guild.id}} text='Guild' />
-                                {#each :guild.ids.challenges as :challengeId}
-                                    <app:challenges:listing challenge={groups.challenges[:challengeId]} />
+                                {#each _page.lists.challenges[:guild.id] as :challenge}
+                                    <app:challenges:listing challenge={:challenge} />
                                 {/}
                                 <hr/>
                             {/}
@@ -52,7 +52,7 @@
                     <app:challenges:create-form />
                 {else}
                     <app:challenges:create-button type='public' gid='habitrpg' text='Public' />
-                    {#each _page.lists.groups.habitrpg.challenges as :challenge}
+                    {#each _page.lists.challenges.habitrpg as :challenge}
                         <app:challenges:listing challenge={:challenge} />
                     {/}
                 {/}
@@ -94,7 +94,7 @@
 
                 <!-- Edit button -->
                 <span style='position:absolute; right:0;'>
-                {#if and(not(_page.editing.challenges[@challenge.id]),equal(@challenge.uid,_user.id))}
+                {#if and(not(_page.editing.challenges[@challenge.id]),equal(@challenge.user.uid,_user.id))}
                     <ul class='nav nav-pills'><li>
                         <a x-bind='click:toggleChallengeEdit' data-id={{@challenge.id}} ><i class=icon-pencil></i></a>
                     </li></ul>
@@ -112,7 +112,7 @@
                         <input type=number class='option-content' placeholder='Gems Prize' value={@challenge.prize} />
                     </div>
                     {{#with @challenge}}
-                        <a class='btn btn-small btn-danger' x-bind=click:removeAt >Delete</a>
+                        <a class='btn btn-small btn-danger' x-bind=click:challengeDelete >Delete</a>
                     {{/}}
                 {/}
                 {#if @challenge.description}<div>{@challenge.description}</div>{/}
@@ -120,10 +120,10 @@
                 <div class="grid">
                     <app:tasks:task-lists
                             editable={_page.editing.challenges[@challenge.id]}
-                            habits={_page.lists.challenges[@challenge.id].habits}
-                            dailys={_page.lists.challenges[@challenge.id].dailys}
-                            todos={_page.lists.challenges[@challenge.id].todos}
-                            rewards={_page.lists.challenges[@challenge.id].rewards}
+                            habits={_page.lists.tasks[@challenge.id].habits}
+                            dailys={_page.lists.tasks[@challenge.id].dailys}
+                            todos={_page.lists.tasks[@challenge.id].todos}
+                            rewards={_page.lists.tasks[@challenge.id].rewards}
                             />
                 </div>
 
@@ -132,13 +132,13 @@
                     <h4>{:member.name}</h4>
                     <div class="grid">
                         <div class="module">
-                            <app:challenges:stats header=Habits challenge={@challenge} member={:member} list={_page.lists.challenges[@challenge.id].habits} />
+                            <app:challenges:stats header=Habits challenge={@challenge} member={:member} list={_page.lists.tasks[@challenge.id].habits} />
                         </div>
                         <div class="module">
-                            <app:challenges:stats header=Dailies challenge={@challenge} member={:member} list={_page.lists.challenges[@challenge.id].dailys}  />
+                            <app:challenges:stats header=Dailies challenge={@challenge} member={:member} list={_page.lists.tasks[@challenge.id].dailys}  />
                         </div>
                         <div class="module">
-                            <app:challenges:stats header=Todos challenge={@challenge} member={:member} list={_page.lists.challenges[@challenge.id].todos}  />
+                            <app:challenges:stats header=Todos challenge={@challenge} member={:member} list={_page.lists.tasks[@challenge.id].todos}  />
                         </div>
                     </div>
                 {/}
@@ -219,9 +219,9 @@
 
     <div class="grid">
         <app:tasks:task-lists
-                habits={_page.lists.challenges[_page.new.challenge.id].habits}
-                dailys={_page.lists.challenges[_page.new.challenge.id].dailys}
-                todos={_page.lists.challenges[_page.new.challenge.id].todos}
-                rewards={_page.lists.challenges[_page.new.challenge.id].rewards}
+                habits={_page.lists.tasks[_page.new.challenge.id].habits}
+                dailys={_page.lists.tasks[_page.new.challenge.id].dailys}
+                todos={_page.lists.tasks[_page.new.challenge.id].todos}
+                rewards={_page.lists.tasks[_page.new.challenge.id].rewards}
                 editable=true />
     </div>

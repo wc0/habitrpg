@@ -51,7 +51,7 @@ setupSortable = (model) ->
           # binding, since jQuery UI will move the element in the DOM.
           # Also, note that refList index arguments can either be an index
           # or the item's id property
-          model.at("_#{type}List").pass(ignore: domId).move {id}, to
+          model.at("_page.lists.tasks.#{model.get('_userId')}.#{type}s").pass(ignore: domId).move {id}, to
 
 setupTooltips = module.exports.setupTooltips = ->
   $('[rel=tooltip]').tooltip()

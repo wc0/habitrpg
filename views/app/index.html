@@ -45,10 +45,10 @@
     <div id=main class="grid">
         <div class='{#if _gamePane}hidden{/}'>
             <app:tasks:task-lists
-                    habits={_habitList}
-                    dailys={_dailyList}
-                    todos={_todoList}
-                    rewards={_rewardList}
+                    habits={_page.lists.tasks[_userId].habits}
+                    dailys={_page.lists.tasks[_userId].dailys}
+                    todos={_page.lists.tasks[_userId].todos}
+                    rewards={_page.lists.tasks[_userId].rewards}
                     main=true
                     editable=true />
         </div>

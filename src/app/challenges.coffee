@@ -82,16 +82,15 @@ module.exports.app = (appExports, model) ->
       group: {type, id:gid}
       timestamp: +new Date
     _.each ['habits','dailys','todos','rewards'], (type) ->
-      model.refList "_page.lists.challenges.#{cid}.#{type}", "_page.new.challenge.tasks", "_page.new.challenge.ids.#{type}"
+      model.refList "_page.lists.tasks.#{cid}.#{type}", "_page.new.challenge.tasks", "_page.new.challenge.ids.#{type}"
 
   appExports.challengeSave = ->
-    debugger
     newChal = model.get('_page.new.challenge')
     [gid, cid] = [newChal.group.id, newChal.id]
-    model.unshift "_page.lists.groups.#{gid}.challenges", newChal, ->
+    model.unshift "_page.lists.challenges.#{gid}", newChal, ->
       _.each ['habits','dailys','todos','rewards'], (type) ->
-        model.del "_page.lists.challenges.#{cid}.#{type}" #remove old refList
-        model.refList "_page.lists.challenges.#{cid}.#{type}", "groups.#{gid}.challenges.#{cid}.tasks", "groups.#{gid}.challenges.#{cid}.ids.#{type}"
+        model.del "_page.lists.tasks.#{cid}.#{type}" #remove old refList
+        model.refList "_page.lists.tasks.#{cid}.#{type}", "groups.#{gid}.challenges.#{cid}.tasks", "groups.#{gid}.challenges.#{cid}.ids.#{type}"
       browser.growlNotification('Challenge Created','success')
       challengeDiscard()
 
@@ -100,6 +99,16 @@ module.exports.app = (appExports, model) ->
     model.set path, !model.get(path)
 
   appExports.challengeDiscard = challengeDiscard = -> model.del '_page.new.challenge'
+
+  appExports.challengeDelete = (e) ->
+    return unless confirm("Delete challenge, are you sure?") is true
+    chal = e.get()
+    path = "groups.#{chal.group.id}.ids.challenges"
+    debugger
+    if (i = model.get(path).indexOf chal.id) != -1
+      ids = model.get(path); ids.splice(i, 1)
+      model.set path, ids
+      e.at().del()
 
   appExports.challengeSubscribe = (e) ->
     chal = e.get()
@@ -118,13 +127,14 @@ module.exports.app = (appExports, model) ->
       trigger: 'manual'
       title: 'Unsubscribe From Challenge And:'
       content: """
-               <a class=challenge-unsubscribe-and-remove>Remove Tasks</a>
-               <a class=challenge-unsubscribe-and-keep>Keep Tasks</a>
-               <a class=challenge-unsubscribe-cancel>Cancel</a>
+               <a class=challenge-unsubscribe-and-remove>Remove Tasks</a><br/>
+               <a class=challenge-unsubscribe-and-keep>Keep Tasks</a><br/>
+               <a class=challenge-unsubscribe-cancel>Cancel</a><br/>
                """
     }).popover('show')
 
     unsubscribe = (remove = false) ->
+      uid = user.get('id')
       chal = e.get()
       i = user.get('challenges')?.indexOf chal.id
       user.remove("challenges.#{i}") if i? and i != -1
@@ -133,8 +143,10 @@ module.exports.app = (appExports, model) ->
         e.at().set 'users', chal.users
       async.each _.toArray(chal.tasks), (task) ->
         if remove is true
-          model.remove "_#{task.type}List", _.findIndex(model.get("_#{task.type}List",{id:task.id}))
-          user.del "tasks.#{task.id}"
+          if (i = _.findIndex(user.get("#{task.type}Ids",{id:task.id}))) != -1
+            ids = user.get("#{task.type}Ids"); ids.splice(i,1)
+            user.set "#{task.type}Ids", ids
+            user.del "tasks.#{task.id}"
         else
           user.del "tasks.#{task.id}.challenge"
         true

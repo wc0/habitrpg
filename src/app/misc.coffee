@@ -47,22 +47,22 @@ taskInChallenge = (task) ->
 ###
 module.exports.setupRefLists = (model) ->
   types = ['habit', 'daily', 'todo', 'reward']
+  uid = model.get('_userId')
 
   ## User
   _.each types, (type) ->
-    model.refList "_#{type}List", "_user.tasks", "_user.#{type}Ids"
+    model.refList "_page.lists.tasks.#{uid}.#{type}s", "_user.tasks", "_user.#{type}Ids"
 
   ## Groups
   _.each model.get('groups'), (g) ->
     gpath = "groups.#{g.id}"
-    model.refList "_page.lists.#{gpath}.challenges", "#{gpath}.challenges", "#{gpath}.ids.challenges"
+    model.refList "_page.lists.challenges.#{g.id}", "#{gpath}.challenges", "#{gpath}.ids.challenges"
 
     ## Groups -> Challenges
-    unless _.isEmpty g.challenges
-      _.each g.challenges, (c) ->
-        _.each types, (type) ->
-          cpath = "challenges.#{c.id}"
-          model.refList "_page.lists.#{cpath}.#{type}s", "#{gpath}.#{cpath}.tasks", "#{gpath}.#{cpath}.ids.#{type}s"
+    _.each g.challenges, (c) ->
+      _.each types, (type) ->
+        cpath = "challenges.#{c.id}"
+        model.refList "_page.lists.tasks.#{c.id}.#{type}s", "#{gpath}.#{cpath}.tasks", "#{gpath}.#{cpath}.ids.#{type}s"
 
 ###
   algos.score wrapper for habitrpg-helpers to work in Derby. We need to do model.set() instead of simply setting the

@@ -41,7 +41,7 @@ module.exports.app = (appExports, model) ->
 
 
   appExports.clearCompleted = (e, el) ->
-    completedIds =  _.pluck( _.where(model.get('_todoList'), {completed:true}), 'id')
+    completedIds =  _.pluck( _.where(model.get("_page.lists.tasks.#{user.get('id')}.todos"), {completed:true}), 'id')
     todoIds = user.get('todoIds')
 
     _.each completedIds, (id) -> user.del "tasks.#{id}"; true
