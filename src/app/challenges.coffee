@@ -87,7 +87,7 @@ module.exports.app = (appExports, model) ->
   appExports.challengeSave = ->
     newChal = model.get('_page.new.challenge')
     [gid, cid] = [newChal.group.id, newChal.id]
-    model.unshift "_page.lists.challenges.#{gid}", newChal, ->
+    model.push "_page.lists.challenges.#{gid}", newChal, ->
       _.each ['habits','dailys','todos','rewards'], (type) ->
         model.del "_page.lists.tasks.#{cid}.#{type}" #remove old refList
         model.refList "_page.lists.tasks.#{cid}.#{type}", "groups.#{gid}.challenges.#{cid}.tasks", "groups.#{gid}.challenges.#{cid}.ids.#{type}"

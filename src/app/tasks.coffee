@@ -30,7 +30,17 @@ module.exports.app = (appExports, model) ->
         newTask = _.defaults {repeat:{su:true,m:true,t:true,w:true,th:true,f:true,s:true}, completed: false }, newTask
       when 'todo'
         newTask = _.defaults {completed: false }, newTask
-    e.at().unshift newTask # e.at() in this case is the list, which was scoped here using {#with @list}...{/}
+
+    # e.at() is the list, which was scoped here using {#with @list}...{/}
+    if e.at().path().indexOf(user.get('id')) != -1
+      e.at().unshift newTask
+    else
+      # see https://github.com/SLaks/racer/issues/14.
+      # Very strange issues here. We can unshift onto user tasks just fine, but when we unshift in challenges
+      # it completely clobbers the id list. model.push doesn't seem to have the same issues for some reason. We get the
+      # same bug if we run `e.at().push newTask, ->e.at().move({id: newTask.id}, 0)`
+      e.at().push newTask
+
     newModel.set ''
 
   appExports.del = (e) ->
