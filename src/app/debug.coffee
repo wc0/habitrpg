@@ -2,7 +2,7 @@ moment = require 'moment'
 {algos} = require 'habitrpg-shared'
 
 module.exports.app = (appExports, model) ->
-  user = model.at('_user')
+  user = model.at('_session.user')
 
   appExports.emulateNextDay = ->
     yesterday = +moment().subtract('days', 1).toDate()

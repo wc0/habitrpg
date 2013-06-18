@@ -4,7 +4,7 @@ misc = require './misc.coffee'
 _ = require 'lodash'
 
 module.exports.app = (appExports, model) ->
-  user = model.at('_user')
+  user = model.at('_session.user')
 
   appExports.revive = ->
     # Reset stats
@@ -65,13 +65,11 @@ module.exports.app = (appExports, model) ->
       location.href = "/logout"
 
   appExports.profileAddWebsite = (e, el) ->
-    newWebsite = model.get('_newProfileWebsite')
+    newWebsite = model.get('_page.new.profileWebsite')
     return if /^(\s)*$/.test(newWebsite)
     user.unshift 'profile.websites', newWebsite
-    model.set '_newProfileWebsite', ''
+    model.set '_page.new.profileWebsite', ''
 
-  appExports.profileEdit = (e, el) -> model.set '_profileEditing', true
-  appExports.profileSave = (e, el) -> model.set '_profileEditing', false
   appExports.profileRemoveWebsite = (e, el) ->
     sites = user.get 'profile.websites'
     i = sites.indexOf $(el).attr('data-website')
@@ -80,12 +78,12 @@ module.exports.app = (appExports, model) ->
 
 
   toggleGamePane = ->
-    model.set '_gamePane', !model.get('_gamePane'), ->
+    model.set '_page.active.gamePane', !model.get('_page.active.gamePane'), ->
       browser.setupTooltips()
 
   appExports.clickAvatar = (e, el) ->
     uid = $(el).attr('data-uid')
-    if uid is model.get('_userId') # clicked self
+    if uid is model.get('_session.userId') # clicked self
       toggleGamePane()
     else
       $("#avatar-modal-#{uid}").modal('show')
@@ -93,5 +91,5 @@ module.exports.app = (appExports, model) ->
   appExports.toggleGamePane = -> toggleGamePane()
 
   appExports.toggleResting = ->
-    model.set '_user.flags.rest', !model.get('_user.flags.rest')
+    model.set '_session.user.flags.rest', !model.get('_session.user.flags.rest')
 

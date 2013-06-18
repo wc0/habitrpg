@@ -4,18 +4,18 @@ _ = require('lodash')
 module.exports.app = (appExports, model, app) ->
   browser = require './browser.coffee'
 
-  _currentTime = model.at '_currentTime'
-  _currentTime.setNull +new Date
+  _page.currentTime = model.at '_page.currentTime'
+  _page.currentTime.setNull +new Date
   # Every 60 seconds, reset the current time so that the chat can update relative times
-  setInterval (->_currentTime.set +new Date), 60000
+  setInterval (->_page.currentTime.set +new Date), 60000
 
-  user = model.at('_user')
+  user = model.at('_session.user')
 
   appExports.groupCreate = (e,el) ->
     type = $(el).attr('data-type')
     newGroup =
-      name: model.get("_new.group.name")
-      description: model.get("_new.group.description")
+      name: model.get("_page.new.group.name")
+      description: model.get("_page.new.group.description")
       leader: user.get('id')
       members: [user.get('id')]
       type: type
@@ -30,7 +30,7 @@ module.exports.app = (appExports, model, app) ->
     unless user.get('balance') >= 1
       return $('#more-gems-modal').modal 'show'
     if confirm "Create Guild for 4 Gems?"
-      newGroup.privacy = (model.get("_new.group.privacy") || 'public') if type is 'guild'
+      newGroup.privacy = (model.get("_page.new.group.privacy") || 'public') if type is 'guild'
       newGroup.balance = 1 # they spent $ to open the guild, it goes into their guild bank
       model.add 'groups', newGroup, ->
         user.incr 'balance', -1, ->location.reload()
@@ -45,23 +45,23 @@ module.exports.app = (appExports, model, app) ->
 
   appExports.groupAddWebsite = (e, el) ->
     test = e.get()
-    e.at().unshift 'websites', model.get('_newGroupWebsite')
-    model.del '_newGroupWebsite'
+    e.at().unshift 'websites', model.get('_page.new.groupWebsite')
+    model.del '_page.new.groupWebsite'
 
   appExports.groupInvite = (e,el) ->
-    uid = model.get('_groupInvitee').replace(/[\s"]/g, '')
-    model.set '_groupInvitee', ''
+    uid = model.get('_page.new.groupInvite').replace(/[\s"]/g, '')
+    model.set '_page.new.groupInvite', ''
     return if _.isEmpty(uid)
 
     model.query('users').publicInfo([uid]).fetch (err, profiles) ->
       throw err if err
       profile = profiles.at(0).get()
-      return model.set("_groupError", "User with id #{uid} not found.") unless profile
+      return model.set("_page.errors.group", "User with id #{uid} not found.") unless profile
       model.query('groups').withMember(uid).fetch (err, g) ->
         throw err if err
         group = e.get(); groups = g.get()
         {type, name} = group; gid = group.id
-        groupError = (msg) -> model.set("_groupError", msg)
+        groupError = (msg) -> model.set("_page.errors.group", msg)
         invite = ->
           $.bootstrapGrowl "Invitation Sent."
           switch type
@@ -120,11 +120,11 @@ module.exports.app = (appExports, model, app) ->
     Chat Functionality
   ###
 
-  model.on 'unshift', '_party.chat', -> $('.chat-message').tooltip()
-  model.on 'unshift', '_habitrpg.chat', -> $('.chat-message').tooltip()
+  model.on 'unshift', '_page.party.chat', -> $('.chat-message').tooltip()
+  model.on 'unshift', '_page.tavern.chat', -> $('.chat-message').tooltip()
 
   appExports.sendChat = (e,el) ->
-    text = model.get '_chatMessage'
+    text = model.get '_page.new.chat'
     # Check for non-whitespace characters
     return unless /\S/.test text
 
@@ -135,7 +135,7 @@ module.exports.app = (appExports, model, app) ->
     group.set('members', uniqMembers) if !_.isEqual(uniqMembers, members)
 
     chat = group.at('chat')
-    model.set('_chatMessage', '')
+    model.set('_page.new.chat', '')
 
     message =
       id: model.id()
@@ -143,7 +143,7 @@ module.exports.app = (appExports, model, app) ->
       contributor: user.get('backer.contributor')
       npc: user.get('backer.npc')
       text: text
-      user: helpers.username(model.get('_user.auth'), model.get('_user.profile.name'))
+      user: helpers.username(model.get('_session.user.auth'), model.get('_session.user.profile.name'))
       timestamp: +new Date
 
     # FIXME - sometimes racer will send many duplicates via chat.unshift. I think because it can't make connection, keeps
@@ -161,7 +161,7 @@ module.exports.app = (appExports, model, app) ->
       else
         chat.remove(200)
     type = $(el).attr('data-type')
-    model.set '_user.party.lastMessageSeen', chat.get()[0].id  if group.get('type') is 'party'
+    model.set '_session.user.party.lastMessageSeen', chat.get()[0].id  if group.get('type') is 'party'
 
   appExports.chatKeyup = (e, el, next) ->
     return next() unless e.keyCode is 13
@@ -173,15 +173,15 @@ module.exports.app = (appExports, model, app) ->
 
   app.on 'render', (ctx) ->
     $('#party-tab-link').on 'shown', (e) ->
-      messages = model.get('_party.chat')
+      messages = model.get('_page.party.chat')
       return false unless messages?.length > 0
-      model.set '_user.party.lastMessageSeen', messages[0].id
+      model.set '_session.user.party.lastMessageSeen', messages[0].id
 
   appExports.gotoPartyChat = ->
-    model.set '_gamePane', true, ->
+    model.set '_page.active.gamePane', true, ->
       $('#party-tab-link').tab('show')
 
   appExports.assignGroupLeader = (e, el) ->
-    newLeader = model.get('_new.groupLeader')
+    newLeader = model.get('_page.new.groupLeader')
     if newLeader and (confirm("Assign new leader, you sure?") is true)
       e.at().set('leader', newLeader, ->browser.resetDom(model)) if newLeader

@@ -5,7 +5,7 @@ moment = require 'moment'
   Setup jQuery UI Sortable
 ###
 setupSortable = (model) ->
-  unless (model.get('_mobileDevice') is true) #don't do sortable on mobile
+  unless (model.get('_session.flags.isMobile') is true) #don't do sortable on mobile
     ['habit', 'daily', 'todo', 'reward'].forEach (type) ->
       $("ul.#{type}s").sortable
         dropOnEmpty: false
@@ -22,7 +22,7 @@ setupSortable = (model) ->
           # binding, since jQuery UI will move the element in the DOM.
           # Also, note that refList index arguments can either be an index
           # or the item's id property
-          model.at("_page.lists.tasks.#{model.get('_userId')}.#{type}s").pass(ignore: domId).move {id}, to
+          model.at("_page.lists.tasks.#{model.get('_session.userId')}.#{type}s").pass(ignore: domId).move {id}, to
 
 setupTooltips = module.exports.setupTooltips = ->
   $('[rel=tooltip]').tooltip()
@@ -105,7 +105,7 @@ growlNotification = module.exports.growlNotification = (html, type) ->
 ###
 setupGrowlNotifications = (model) ->
   return unless jQuery? # Only run this in the browser
-  user = model.at '_user'
+  user = model.at '_session.user'
 
   statsNotification = (html, type) ->
     return if user.get('stats.lvl') == 0 #don't show notifications if user dead
@@ -150,11 +150,11 @@ setupGrowlNotifications = (model) ->
     statsNotification "#{sign} #{showCoins(money)}", 'gp'
 
     # Append Bonus
-    bonus = model.get('_streakBonus')
+    bonus = model.get('_page.tmp.streakBonus')
     if (money > 0) and !!bonus
       bonus = 0.01 if bonus < 0.01
       statsNotification "+ #{showCoins(bonus)}  Streak Bonus!"
-      model.del('_streakBonus')
+      model.del('_page.tmp.streakBonus')
 
   user.on 'set', 'items.*', (item, after, before) ->
     if item in ['armor','weapon','shield','head'] and parseInt(after) < parseInt(before)
@@ -178,7 +178,7 @@ googleAnalytics = (model) ->
     $.getScript ((if "https:" is document.location.protocol then "https://ssl" else "http://www")) + ".google-analytics.com/ga.js"
 
 amazonAffiliate = (model) ->
-  if model.get('_loggedIn') and (model.get('_user.flags.ads') != 'hide')
+  if model.get('_session.loggedIn') and (model.get('_session.user.flags.ads') != 'hide')
     $.getScript('//wms.assoc-amazon.com/20070822/US/js/link-enhancer-common.js?tag=ha0d2-20').fail ->
       $('body').append('<img src="//wms.assoc-amazon.com/20070822/US/img/noscript.gif?tag=ha0d2-20" alt="" />')
 
@@ -188,14 +188,14 @@ googleCharts = ->
     google.load "visualization", "1", {packages:["corechart"], callback: ->}
 
 module.exports.app = (appExports, model, app) ->
-  setupGrowlNotifications(model) unless model.get('_mobileDevice')
+  setupGrowlNotifications(model) unless model.get('_session.flags.isMobile')
 
   app.on 'render', (ctx) ->
     #restoreRefs(model)
     setupSortable(model)
     setupTooltips(model)
     setupTour(model)
-    initStickyHeader(model) unless model.get('_mobileDevice')
+    initStickyHeader(model) unless model.get('_session.flags.isMobile')
     $('.datepicker').datepicker({autoclose:true, todayBtn:true})
       .on 'changeDate', (ev) ->
         #for some reason selecting a date doesn't fire a change event on the field, meaning our changes aren't saved
@@ -208,7 +208,7 @@ module.exports.app = (appExports, model, app) ->
       These need to be handled in app.on('render'), see https://groups.google.com/forum/?fromgroups=#!topic/derbyjs/x8FwdTLEuXo
     ###
     $.getScript('//checkout.stripe.com/v2/checkout.js')
-    unless (model.get('_mobileDevice') is true)
+    unless (model.get('_session.flags.isMobile') is true)
       $.getScript("//s7.addthis.com/js/250/addthis_widget.js#pubid=lefnire")
       googleCharts()
 

@@ -8,7 +8,7 @@ derby = require 'derby'
 staticPages = derby.createStatic path.dirname(path.dirname(__dirname))
 
 beforeEach = (req, res, next) ->
-  req.getModel().set '_nodeEnv', 'production' # we don't want cheat buttons on static pages
+  req.getModel().set '_session.flags.nodeEnv', 'production' # we don't want cheat buttons on static pages
   next()
 
 router.get '/splash.html', (req, res) -> res.redirect('/static/front')

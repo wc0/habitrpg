@@ -8,11 +8,11 @@ misc = require './misc.coffee'
   Make scoring functionality available to the app
 ###
 module.exports.app = (appExports, model) ->
-  user = model.at('_user')
+  user = model.at('_session.user')
 
   appExports.addTask = (e, el) ->
     type = $(el).attr('data-task-type')
-    newModel = model.at('_new' + type.charAt(0).toUpperCase() + type.slice(1))
+    newModel = model.at('_page.new.' + type.charAt(0).toUpperCase() + type.slice(1))
     text = newModel.get()
     # Don't add a blank task; 20/02/13 Added a check for undefined value, more at issue #463 -lancemanfv
     return if /^(\s)*$/.test(text) || text == undefined
@@ -65,7 +65,7 @@ module.exports.app = (appExports, model) ->
 
   appExports.toggleTaskEdit = (e, el) ->
     id = e.get('id')
-    [editPath, chartPath] = ["_tasks.editing.#{id}", "_page.charts.#{id}"]
+    [editPath, chartPath] = ["_page.editing.tasks.#{id}", "_page.charts.#{id}"]
     model.set editPath, !(model.get editPath)
     model.set chartPath, false
 
@@ -75,12 +75,12 @@ module.exports.app = (appExports, model) ->
 
     switch id
       when 'exp'
-        [togglePath, historyPath] = ['_page.charts.exp', '_user.history.exp']
+        [togglePath, historyPath] = ['_page.charts.exp', '_session.user.history.exp']
       when 'todos'
-        [togglePath, historyPath] = ['_page.charts.todos', '_user.history.todos']
+        [togglePath, historyPath] = ['_page.charts.todos', '_session.user.history.todos']
       else
-        [togglePath, historyPath] = ["_page.charts.#{id}", "_user.tasks.#{id}.history"]
-        model.set "_tasks.editing.#{id}", false
+        [togglePath, historyPath] = ["_page.charts.#{id}", "_session.user.tasks.#{id}.history"]
+        model.set "_page.editing.tasks.#{id}", false
 
     history = model.get(historyPath)
     model.set togglePath, !(model.get togglePath)
@@ -94,8 +94,8 @@ module.exports.app = (appExports, model) ->
     chart = new google.visualization.LineChart $(".#{id}-chart")[0]
     chart.draw(data, options)
 
-  appExports.todosShowRemaining = -> model.set '_showCompleted', false
-  appExports.todosShowCompleted = -> model.set '_showCompleted', true
+  appExports.todosShowRemaining = -> model.set '_page.active.completed', false
+  appExports.todosShowCompleted = -> model.set '_page.active.completed', true
 
   ###
     Call scoring functions for habits & rewards (todos & dailies handled below)
@@ -118,9 +118,9 @@ module.exports.app = (appExports, model) ->
     Undo
   ###
   appExports.undo = () ->
-    undo = model.get '_undo'
+    undo = model.get '_page.undo'
     clearTimeout(undo.timeoutId) if undo?.timeoutId
-    model.del '_undo'
+    model.del '_page.undo'
     _.each undo.stats, (val, key) -> user.set "stats.#{key}", val; true
     taskPath = "tasks.#{undo.task.id}"
     _.each undo.task, (val, key) ->
@@ -141,5 +141,5 @@ module.exports.app = (appExports, model) ->
 
   appExports.tasksSetPriority = (e, el) ->
     dataId = $(el).parent('[data-id]').attr('data-id')
-    #"_user.tasks.#{dataId}"
+    #"_session.user.tasks.#{dataId}"
     model.at(e.target).set 'priority', $(el).attr('data-priority')

@@ -3,7 +3,7 @@ _ = require 'lodash'
 {items} = items
 
 module.exports.batchTxn = batchTxn = (model, cb, options) ->
-  user = model.at("_user")
+  user = model.at("_session.user")
   uObj = hydrate(user.get()) # see https://github.com/codeparty/racer/issues/116
   batch =
     set: (k,v) -> helpers.dotSet(k,v,uObj); paths[k] = true
@@ -46,11 +46,11 @@ taskInChallenge = (task) ->
 ###
 module.exports.setupRefLists = (model) ->
   types = ['habit', 'daily', 'todo', 'reward']
-  uid = model.get('_userId')
+  uid = model.get('_session.userId')
 
   ## User
   _.each types, (type) ->
-    model.refList "_page.lists.tasks.#{uid}.#{type}s", "_user.tasks", "_user.#{type}Ids"
+    model.refList "_page.lists.tasks.#{uid}.#{type}s", "_session.user.tasks", "_session.user.#{type}Ids"
 
   ## Groups
   _.each model.get('groups'), (g) ->
@@ -78,17 +78,17 @@ module.exports.score = (model, taskId, direction, allowUndo=false) ->
     if allowUndo
       tObjBefore = _.cloneDeep tObj
       tObjBefore.completed = !tObjBefore.completed if tObjBefore.type in ['daily', 'todo']
-      previousUndo = model.get('_undo')
+      previousUndo = model.get('_page.undo')
       clearTimeout(previousUndo.timeoutId) if previousUndo?.timeoutId
-      timeoutId = setTimeout (-> model.del('_undo')), 20000
-      model.set '_undo', {stats:_.cloneDeep(uObj.stats), task:tObjBefore, timeoutId: timeoutId}
+      timeoutId = setTimeout (-> model.del('_page.undo')), 20000
+      model.set '_page.undo', {stats:_.cloneDeep(uObj.stats), task:tObjBefore, timeoutId: timeoutId}
 
     delta = algos.score(uObj, tObj, direction, {paths})
-    model.set('_streakBonus', uObj._tmp.streakBonus) if uObj._tmp?.streakBonus
+    model.set('_page.tmp.streakBonus', uObj._tmp.streakBonus) if uObj._tmp?.streakBonus
     drop = uObj._tmp?.drop
 
     # Update challenge statistics
-    # FIXME put this in it's own batchTxn, make batchTxn model.at() ref aware (not just _user)
+    # FIXME put this in it's own batchTxn, make batchTxn model.at() ref aware (not just _session.user)
     # FIXME use reflists for users & challenges
     if (chalTask = taskInChallenge.call({model}, tObj)) and chalTask?.get()
       model._dontPersist = false
@@ -107,7 +107,7 @@ module.exports.score = (model, taskId, direction, allowUndo=false) ->
       model._dontPersist = true
   , done:->
     if drop and $?
-      model.set '_drop', drop
+      model.set '_page.tmp.drop', drop
       $('#item-dropped-modal').modal 'show'
 
   delta
@@ -130,7 +130,7 @@ module.exports.hydrate = hydrate = (spec) ->
   Gotta love refLists! see https://github.com/lefnire/habitrpg/issues/803 & https://github.com/lefnire/habitrpg/issues/6343
 ###
 module.exports.fixCorruptUser = (model) ->
-  user = model.at('_user')
+  user = model.at('_session.user')
   tasks = user.get('tasks')
 
   ## Remove corrupted tasks

@@ -201,14 +201,14 @@ router.get '/user/tasks', auth, (req, res) ->
   return res.json 400, NO_USER_FOUND if !user || _.isEmpty(user)
 
   model = req.getModel()
-  model.ref '_user', req.user
+  model.ref '_session.user', req.user
   tasks = []
   types = ['habit','todo','daily','reward']
   if /^(habit|todo|daily|reward)$/.test req.query.type
     types = [req.query.type]
   for type in types
-    model.refList "_#{type}List", "_user.tasks", "_user.#{type}Ids"
-    tasks = tasks.concat model.get("_#{type}List")
+    model.refList "_page.#{type}List", "_session.user.tasks", "_session.user.#{type}Ids"
+    tasks = tasks.concat model.get("_page.#{type}List")
 
   res.json 200, tasks
 
@@ -227,9 +227,9 @@ scoreTask = (req, res, next) ->
   model = req.getModel()
   {user, userObj} = req
 
-  model.ref('_user', user)
+  model.ref('_session.user', user)
 
-  existingTask = model.at "_user.tasks.#{taskId}"
+  existingTask = model.at "_session.user.tasks.#{taskId}"
   # TODO add service & icon to task
   # If task exists, set it's compltion
   if existingTask.get()
@@ -250,12 +250,12 @@ scoreTask = (req, res, next) ->
       when 'daily', 'todo'
         task.completed = direction is 'up'
 
-    model.refList "_#{type}List", "_user.tasks", "_user.#{type}Ids"
-    model.at("_#{type}List").push task
+    model.refList "_page.#{type}List", "_session.user.tasks", "_session.user.#{type}Ids"
+    model.at("_page.#{type}List").push task
 
   #FIXME
   delta = misc.score(model, taskId, direction)
-  result = model.get '_user.stats'
+  result = model.get '_session.user.stats'
   result.delta = delta
   res.json result
 

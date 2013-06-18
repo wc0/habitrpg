@@ -27,32 +27,32 @@
   <ui:connectionAlert>
   <div class="header-wrap">
 
-    {#if _undo}<a x-bind="click:undo" class='label undo-button'>Undo</a>{/}
+    {#if _page.undo}<a x-bind="click:undo" class='label undo-button'>Undo</a>{/}
 
     <app:settings:menu />
     <app:header:header />
   </div>
-  <span class='{#if _gamePane}hidden{/}'><app:filters:filters /></span>
+  <span class='{#if _page.active.gamePane}hidden{/}'><app:filters:filters /></span>
 
 <Body:>
   <br/>
   <div id="notification-area"></div>
   <div id="wrap">
     <app:alerts:flash />
-    {#if _user.preferences.hideHeader}<app:settings:menu />{/} <!-- if they hide the header, we still need user-menu visible -->
+    {#if _session.user.preferences.hideHeader}<app:settings:menu />{/} <!-- if they hide the header, we still need user-menu visible -->
     <div class="exp-chart {#unless _page.charts.exp}hidden{/}"></div>
 
     <div id=main class="grid">
-        <div class='{#if _gamePane}hidden{/}'>
+        <div class='{#if _page.active.gamePane}hidden{/}'>
             <app:tasks:task-lists
-                    habits={_page.lists.tasks[_userId].habits}
-                    dailys={_page.lists.tasks[_userId].dailys}
-                    todos={_page.lists.tasks[_userId].todos}
-                    rewards={_page.lists.tasks[_userId].rewards}
+                    habits={_page.lists.tasks[_session.userId].habits}
+                    dailys={_page.lists.tasks[_session.userId].dailys}
+                    todos={_page.lists.tasks[_session.userId].todos}
+                    rewards={_page.lists.tasks[_session.userId].rewards}
                     main=true
                     editable=true />
         </div>
-        <div class='{#unless _gamePane}hidden{/}'>
+        <div class='{#unless _page.active.gamePane}hidden{/}'>
             <app:game-pane:main />
         </div>
     </div>

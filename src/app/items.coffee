@@ -5,14 +5,14 @@ _ = require 'lodash'
   server exports
 ###
 module.exports.server = (model) ->
-  model.set '_items', items.items
+  model.set '_page.items', items.items
   updateStore(model)
 
 ###
   app exports
 ###
 module.exports.app = (appExports, model) ->
-  user = model.at '_user'
+  user = model.at '_session.user'
 
   appExports.buyItem = (e, el) ->
     [type, value, index] = [ $(el).attr('data-type'), $(el).attr('data-value'), $(el).attr('data-index') ]
@@ -20,16 +20,9 @@ module.exports.app = (appExports, model) ->
       _.each changes, (v,k) -> user.set k,v; true
       updateStore(model)
 
-  appExports.activateRewardsTab = ->
-    model.set '_activeTabRewards', true
-    model.set '_activeTabPets', false
-  appExports.activatePetsTab = ->
-    model.set '_activeTabPets', true
-    model.set '_activeTabRewards', false
-
 module.exports.updateStore = updateStore = (model) ->
-  nextItems = items.updateStore(model.get('_user'))
-  _.each nextItems, (v,k) -> model.set("_items.next.#{k}",v); true
+  nextItems = items.updateStore(model.get('_session.user'))
+  _.each nextItems, (v,k) -> model.set("_page.items.next.#{k}",v); true
 
 
 

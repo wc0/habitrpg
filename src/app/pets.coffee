@@ -7,15 +7,15 @@ _ = require 'lodash'
   app exports
 ###
 module.exports.app = (appExports, model) ->
-  user = model.at '_user'
+  user = model.at '_session.user'
 
   appExports.chooseEgg = (e, el) ->
-    model.ref '_hatchEgg', e.at()
+    model.ref '_page.hatchEgg', e.at()
 
   appExports.hatchEgg = (e, el) ->
     hatchingPotionName = $(el).children('select').val()
     myHatchingPotion = user.get 'items.hatchingPotions'
-    egg = model.get '_hatchEgg'
+    egg = model.get '_page.hatchEgg'
     eggs = user.get 'items.eggs'
     myPets = user.get 'items.pets'
 

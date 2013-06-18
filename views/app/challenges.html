@@ -9,15 +9,15 @@
         <div class="tab-content">
 
             <div class="tab-pane active" id="challengesViewParty">
-                {{#unless _party.id}}
+                {{#unless _page.party.id}}
                     Join a party first.
                 {{else}}
                     {#if _page.new.challenge}
                         <app:challenges:create-form />
                     {else}
-                        <!-- FIXME https://github.com/codeparty/derby/issues/267, see _guilds.challenges below -->
-                        <app:challenges:create-button type='party' gid={{_party.id}} text='Party'/>
-                        {#each _page.lists.challenges[_party.id] as :challenge}
+                        <!-- FIXME https://github.com/codeparty/derby/issues/267, see _page.guilds.challenges below -->
+                        <app:challenges:create-button type='party' gid={{_page.party.id}} text='Party'/>
+                        {#each _page.lists.challenges[_page.party.id] as :challenge}
                             <app:challenges:listing challenge={:challenge} />
                         {/}
                     {/}
@@ -26,12 +26,12 @@
 
             <div class="tab-pane" id="challengesViewGuild">
                 <ul class="nav nav-pills">
-                    {{#each _guilds as :guild}}
+                    {{#each _page.guilds as :guild}}
                         <li class="{{#if equal($index,0)}}active{{/}}"><a data-toggle='tab' data-target="#challenges-guild-{:guild.id}">{{:guild.name}}</a></li>
                     {{/}}
                 </ul>
                 <div class="tab-content">
-                    {{#each _guilds as :guild}}
+                    {{#each _page.guilds as :guild}}
                         <div class="tab-pane {{#if equal($index,0)}}active{{/}}" id="challenges-guild-{{:guild.id}}">
                             {#if _page.new.challenge}
                                 <app:challenges:create-form />
@@ -77,8 +77,8 @@
                 <li>
                     <!-- subscribe / unsubscribe -->
                     {#with @challenge}
-                    <a x-bind="click:challengeUnsubscribe" class='btn btn-small btn-danger {#unless indexOf(_user.challenges,@challenge.id)}hidden{/}'><i class='icon-ban-circle'></i> Unsubscribe</a>
-                    <a x-bind="click:challengeSubscribe" class='btn btn-small btn-success {#if indexOf(_user.challenges,@challenge.id)}hidden{/}'><i class='icon-ok'></i> Subscribe</a>
+                    <a x-bind="click:challengeUnsubscribe" class='btn btn-small btn-danger {#unless indexOf(_session.user.challenges,@challenge.id)}hidden{/}'><i class='icon-ban-circle'></i> Unsubscribe</a>
+                    <a x-bind="click:challengeSubscribe" class='btn btn-small btn-success {#if indexOf(_session.user.challenges,@challenge.id)}hidden{/}'><i class='icon-ok'></i> Subscribe</a>
                     {/}
                 </li>
             </ul>
@@ -94,7 +94,7 @@
 
                 <!-- Edit button -->
                 <span style='position:absolute; right:0;'>
-                {#if and(not(_page.editing.challenges[@challenge.id]),equal(@challenge.user.uid,_user.id))}
+                {#if and(not(_page.editing.challenges[@challenge.id]),equal(@challenge.user.uid,_session.user.id))}
                     <ul class='nav nav-pills'><li>
                         <a x-bind='click:toggleChallengeEdit' data-id={{@challenge.id}} ><i class=icon-pencil></i></a>
                     </li></ul>
@@ -179,24 +179,24 @@
         <!--<fieldset>
             <div>
                 <select>
-                    <option selected="{equal('party',_challenge.new.group.type)}" >Party</option>
-                    <option selected="{equal('guild',_challenge.new.group.type)}" >Guild</option>
-                    <option selected="{equal('public',_challenge.new.group.type)}" >Public</option>
+                    <option selected="{equal('party',_page.new.challenge.group.type)}" >Party</option>
+                    <option selected="{equal('guild',_page.new.challenge.group.type)}" >Guild</option>
+                    <option selected="{equal('public',_page.new.challenge.group.type)}" >Public</option>
                 </select>
             </div>
             <div>
-                {#if equal(_challenge.new.assignTo,'Party')}
+                {#if equal(_page.new.challenge.assignTo,'Party')}
                     <div class='row-fluid'>
                         <div class='span4 well'>
-                            <div><input type='radio' name='challenge-party-selection' checked={_challenge.new.partyAssignees} >All Party</input></div>
+                            <div><input type='radio' name='challenge-party-selection' checked={_page.new.challenge.partyAssignees} >All Party</input></div>
                             <small>No individual privacy on the challenge, all party members can see progress even if they decline the challenge. Any new party members can subscribe to this challenge.</small>
                         </div>
                         <div class='span8 well'>
-                            <div><input type='radio' name='challenge-party-selection' checked={not(_challenge.new.partyAssignees)} >Individual Members</input></div>
+                            <div><input type='radio' name='challenge-party-selection' checked={not(_page.new.challenge.partyAssignees)} >Individual Members</input></div>
                             <div>
                                 <select multiple="multiple">
-                                {{#each _party.members as :memberId}}
-                                    <option>{{username(_members[:memberId].auth,_members[:memberId].profile.name)}}</option>
+                                {{#each _page.party.members as :memberId}}
+                                    <option>{{username(_page.members[:memberId].auth,_page.members[:memberId].profile.name)}}</option>
                                 {{/}}
                                 </select>
                             </div>
@@ -205,10 +205,10 @@
                     </div>
 
                 {/}
-                {#if equal(_challenge.new.group.type,'guild')}
+                {#if equal(_page.new.challenge.group.type,'guild')}
                     <select>
-                    {{#each _guilds as :guild}}
-                        <option selected="{equal(:guild.id,_challenge.new.group.id)}" >{:guild.name}</option>
+                    {{#each _page.guilds as :guild}}
+                        <option selected="{equal(:guild.id,_page.new.challenge.group.id)}" >{:guild.name}</option>
                     {{/}}
                     </select>
                 {/}

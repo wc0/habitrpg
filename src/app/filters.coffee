@@ -1,7 +1,7 @@
 _ = require 'lodash'
 
 module.exports.app = (appExports, model) ->
-  user = model.at('_user')
+  user = model.at('_session.user')
 
   appExports.toggleFilterByTag = (e, el) ->
     tagId = $(el).attr('data-tag-id')
@@ -10,8 +10,8 @@ module.exports.app = (appExports, model) ->
 
   appExports.filtersNewTag = ->
     user.setNull 'tags', []
-    user.push 'tags', {id: model.id(), name: model.get("_newTag")}
-    model.set '_newTag', ''
+    user.push 'tags', {id: model.id(), name: model.get("_page.new.tag")}
+    model.set '_page.new.tag', ''
 
   appExports.toggleEditingTags = ->
     model.set '_page.editing.tags', !model.get('_page.editing.tags')
@@ -21,7 +21,7 @@ module.exports.app = (appExports, model) ->
 
   appExports.filtersDeleteTag = (e, el) ->
     tags = user.get('tags')
-    tag = e.at "_user.tags." + $(el).attr('data-index')
+    tag = e.at "_session.user.tags." + $(el).attr('data-index')
     tagId = tag.get('id')
 
     #something got corrupted, let's clear the corrupt tags
@@ -30,7 +30,7 @@ module.exports.app = (appExports, model) ->
       user.set 'filters', {}
       return
 
-    model.del "_user.filters.#{tagId}"
+    model.del "_session.user.filters.#{tagId}"
     tag.remove()
 
     # remove tag from all tasks

@@ -1,7 +1,7 @@
 <modals:>
-    {{#each _membersArray as :member}}
+    {{#each _page.membersArray as :member}}
         <app:modals:modal modalId="avatar-modal-{{:member.id}}">
-            <app:avatar:profile profile={{_members[:member.id]}} />
+            <app:avatar:profile profile={{_page.members[:member.id]}} />
             <@footer>
                 <button data-dismiss="modal" class="btn btn-success">Ok</button>
             </@footer>
@@ -72,7 +72,7 @@
 <customize:>
 
     <!-- customization options -->
-    {#with _user.preferences as :p}
+    {#with _session.user.preferences as :p}
         <menu type="list">
             <!-- gender -->
             <li class="customize-menu">
@@ -81,7 +81,7 @@
                     <button type="button" class="f_head_0 customize-option" data-value="f" x-bind="click:customizeGender"></button>
                 </menu>
                 <label class="checkbox">
-                    <input type=checkbox checked="{_user.preferences.showHelm}" /> Show Helm
+                    <input type=checkbox checked="{_session.user.preferences.showHelm}" /> Show Helm
                 </label>
 
             </li>
@@ -108,7 +108,7 @@
             </li>
         </menu>
 
-        {#if equal(_user.preferences.gender, 'f')} <!-- Sorry boys -->
+        {#if equal(_session.user.preferences.gender, 'f')} <!-- Sorry boys -->
             <menu type="list">
                 <li class="customize-menu">
                     <menu label="Clothing">
@@ -123,25 +123,25 @@
 <profile-edit:>
     <!--<a class='btn btn-success' x-bind="click:profileSave">Save</a>-->
     <!-- TODO use photo-upload instead: https://groups.google.com/forum/?fromgroups=#!topic/derbyjs/xMmADvxBOak -->
-    <img class='pull-right' src="{_user.profile.imageUrl}" />
+    <img class='pull-right' src="{_session.user.profile.imageUrl}" />
     <div class="control-group">
         <label class="control-label" for="profileImageUrl">Photo Url</label>
         <div class="controls">
-            <input type="url" id="profileImageUrl" value="{_user.profile.imageUrl}" placeholder="Image Url"/>
+            <input type="url" id="profileImageUrl" value="{_session.user.profile.imageUrl}" placeholder="Image Url"/>
         </div>
     </div>
 
     <div class="control-group">
         <label class="control-label" for="profileFullName">Full Name</label>
         <div class="controls">
-            <input type="text" id="profileFullName" placeholder="Full Name" value="{_user.profile.name}" />
+            <input type="text" id="profileFullName" placeholder="Full Name" value="{_session.user.profile.name}" />
         </div>
     </div>
 
     <div class="control-group">
         <label class="control-label" for="profileBlurb">Blurb</label>
         <div class="controls">
-            <textarea id="profileBlurb" placeholder="Blurb" >{_user.profile.blurb}</textarea>
+            <textarea id="profileBlurb" placeholder="Blurb" >{_session.user.profile.blurb}</textarea>
         </div>
     </div>
 
@@ -149,12 +149,12 @@
         <label class="control-label" for="profileWebsite">Websites</label>
         <div class="controls">
             <form x-bind="submit:profileAddWebsite">
-                <input type="url" id="profileWebsite" value="{_newProfileWebsite}" placeholder="Add Website"/>
+                <input type="url" id="profileWebsite" value="{_page.new.profileWebsite}" placeholder="Add Website"/>
             </form>
         </div>
         <ul>
             <!-- would prefer if there were and index in #each, instead using data-website to search with indexOf -->
-            {#each _user.profile.websites as :website}
+            {#each _session.user.profile.websites as :website}
             <li>{:website} <a data-website="{:website}" x-bind="click:profileRemoveWebsite"><i class='icon-remove'></i></a></li>
             {/}
         </ul>
@@ -258,7 +258,7 @@
         <div class='achievement {{@classes}}'></div>{@content}
         <hr/>
     {else if @unlockable} <!-- only show silhouettes on own tab -->
-        {{#if equal(_user.id,@profile.id)}}
+        {{#if equal(_session.user.id,@profile.id)}}
             <span class='muted'>
             {@content}
             </span>

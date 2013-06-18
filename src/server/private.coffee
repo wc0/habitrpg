@@ -3,7 +3,7 @@ misc = require "../app/misc.coffee"
 
 module.exports.middleware = (req, res, next) ->
   model = req.getModel()
-  model.set '_stripePubKey', process.env.STRIPE_PUB_KEY
+  model.set '_session.stripePubKey', process.env.STRIPE_PUB_KEY
   return next()
 
 module.exports.app = (appExports, model) ->
@@ -19,10 +19,10 @@ module.exports.app = (appExports, model) ->
       .error (err) ->
         alert err.responseText
 
-    disableAds = if (model.get('_user.flags.ads') is 'hide') then '' else 'Disable Ads, '
+    disableAds = if (model.get('_session.user.flags.ads') is 'hide') then '' else 'Disable Ads, '
 
     StripeCheckout.open
-      key: model.get('_stripePubKey')
+      key: model.get('_session.stripePubKey')
       address: false
       amount: 500
       name: "Checkout"
@@ -52,12 +52,12 @@ module.exports.routes = (expressApp) ->
         return res.send(500, err.response.error.message)
       else
         model = req.getModel()
-        userId = model.get('_userId') #or model.session.userId # see http://goo.gl/TPYIt
+        userId = model.get('_session.userId') #or model.session.userId # see http://goo.gl/TPYIt
         req._isServer = true
         model.fetch "users.#{userId}", (err, user) ->
-          model.ref '_user', "users.#{userId}"
-          model.set('_user.balance', model.get('_user.balance')+5)
-          model.set('_user.flags.ads','hide')
+          model.ref '_session.user', "users.#{userId}"
+          model.set('_session.user.balance', model.get('_session.user.balance')+5)
+          model.set('_session.user.flags.ads','hide')
           return res.send(200)
 
     api_key = process.env.STRIPE_API_KEY # secret stripe API key

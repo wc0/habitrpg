@@ -8,7 +8,7 @@
         <ul class="nav nav-tabs game-tabs">
             <li class="active"><a data-toggle='tab' data-target="#profile-customize"><i class='icon-user'></i> Profile</a></li>
             <li><a data-toggle='tab' data-target="#profile-groups" id='party-tab-link'><i class='icon-heart'></i> Groups</a></li>
-            {#if _user.flags.dropsEnabled}
+            {#if _session.user.flags.dropsEnabled}
                 <li><a data-toggle='tab' data-target="#profile-inventory"><i class='icon-gift'></i> Inventory</a></li>
                 <li><a data-toggle='tab' data-target="#profile-stable"><i class='icon-leaf'></i> Stable</a></li>
             {/if}
@@ -26,7 +26,7 @@
                         <app:avatar:customize />
                     </div>
                     <div class='span4  border-right'>
-                        <app:avatar:profile-stats profile={_user} />
+                        <app:avatar:profile-stats profile={_session.user} />
                     </div>
                     <div class='span4'>
                         <app:avatar:profile-edit />
@@ -39,7 +39,7 @@
             </div>
 
             <div class="tab-pane" id="profile-achievements">
-                <app:avatar:achievements profile="{{_user}}" />
+                <app:avatar:achievements profile="{{_session.user}}" />
             </div>
 
             <div class="tab-pane" id="profile-inventory">
@@ -60,7 +60,7 @@
             </div>
 
             <div class="tab-pane" id="profile-tavern">
-                <app:groups:group group={_habitRPG} />
+                <app:groups:group group={_page.tavern} />
             </div>
 
             <div class="tab-pane" id="profile-challenges">
@@ -90,7 +90,7 @@
         </tr></table>
 
         <h4>Eggs</h4>
-        {#with _items.pets as :egg}
+        {#with _page.items.pets as :egg}
         <table class="tab-pane pet-grid">
             <tr>
                 {#with :egg[0]}<app:pets:egg />{/}
@@ -110,7 +110,7 @@
         </table>
         {/}
         <h4>Hatching Potions</h4>
-        {#with _items.hatchingPotions as :hatchingPotion}
+        {#with _page.items.hatchingPotions as :hatchingPotion}
         <table class="tab-pane pet-grid">
             <tr>
                 {#with :hatchingPotion[0]}<app:pets:hatchingPotion />{/}

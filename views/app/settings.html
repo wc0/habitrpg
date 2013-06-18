@@ -4,7 +4,7 @@
             <h2>Settings</h2>
             <h4>Custom Day Start</h4>
             <div class="option-group option-short">
-                <input class="option-content option-time" type="number" min=0 max=24 value={_user.preferences.dayStart}>
+                <input class="option-content option-time" type="number" min=0 max=24 value={_session.user.preferences.dayStart}>
                 <span class="input-suffix">:00 (24h clock)</span>
             </div>
             <div>
@@ -13,9 +13,9 @@
 
             <hr/>
             <h4>Misc</h4>
-            <button x-bind="click:toggleHeader" class="btn">{#if _user.preferences.hideHeader}Show Header{else}Hide Header{/}</button>
+            <button x-bind="click:toggleHeader" class="btn">{#if _session.user.preferences.hideHeader}Show Header{else}Hide Header{/}</button>
 
-            {{#if _user.auth.local}}
+            {{#if _session.user.auth.local}}
             <hr/>
             <h4>Change Password</h4>
             <derby-auth:changePassword />
@@ -31,20 +31,20 @@
             <h2>API</h2>
             <small>Copy these for use in third party applications.</small>
             <h6>User ID</h6>
-            <pre class=prettyprint>{_user.id}</pre>
+            <pre class=prettyprint>{_session.user.id}</pre>
 
             <h6>API Token</h6>
-            <pre class=prettyprint>{_user.apiToken}</pre>
+            <pre class=prettyprint>{_session.user.apiToken}</pre>
 			
 			<h6>QR Code</h6>
 			<img src='https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=
-			%7Baddress%3A%22https%3A%2F%2Fhabitrpg.com%22%2Cuser%3A%22{{_user.id}}%22%2Ckey%3A%22{{_user.apiToken}}%22%7D,&choe=UTF-8&chld=L' alt="qrcode"/>
+			%7Baddress%3A%22https%3A%2F%2Fhabitrpg.com%22%2Cuser%3A%22{{_session.user.id}}%22%2Ckey%3A%22{{_session.user.apiToken}}%22%7D,&choe=UTF-8&chld=L' alt="qrcode"/>
 			
         </div>
     </div>
 
 <modals:>
-    {{#if _loggedIn}}
+    {{#if _session.loggedIn}}
         <app:modals:modal modalId="reset-modal" header="Reset">
             <p>This resets your entire account - your tasks will be deleted and your character will start over.</p>
             <p>This is highly discouraged because you'll lose historical data, which is useful for graphing your progress over time. However, some people find it useful in the beginning after playing with the app for a while.</p>
@@ -57,7 +57,7 @@
         <app:modals:modal modalId="restore-modal" header="Restore">
             <p>HabitRPG is quite Beta-quality at present, and many find they need to restore character attributes as a result. Enter your numbers here and it will be applied automatically to your character. This will be removed once Habit is more stable.</p>
 
-            {#with _user}
+            {#with _session.user}
             <form id='restore-form' class="form-horizontal restore-options">
                 <h3>Stats</h3>
                 <div class="option-group option-medium">
@@ -105,10 +105,10 @@
 
         <app:modals:modal modalId="delete-modal" header="Delete Account">
             <p>Woa woa woa! Are you sure? This will seriously delete your account forever, and it can never be restored. If you're absolutely certain, type <strong>DELETE</strong> into the text-box below.</p>
-            <p><input type="text" value="{_deleteAccount}" /></p>
+            <p><input type="text" value="{_page.tmp.deleteAccount}" /></p>
             <@footer>
                 <button class="btn btn-large" data-dismiss="modal" aria-hidden="true">Cancel</button>
-                <button data-dismiss="modal" x-bind="click:deleteAccount" class="btn btn-danger btn-small {#unless equal(_deleteAccount,'DELETE')}disabled{/}">Delete Account</button>
+                <button data-dismiss="modal" x-bind="click:deleteAccount" class="btn btn-danger btn-small {#unless equal(_page.tmp.deleteAccount,'DELETE')}disabled{/}">Delete Account</button>
             </@footer>
         </app:modals:modal>
 
@@ -131,16 +131,16 @@
 
 <menu:>
     <div class="user-menu">
-        {{#unless _loggedIn}}
+        {{#unless _session.loggedIn}}
             <button class="task-action-btn tile solid" style='cursor:pointer' data-target="#login-modal" data-toggle="modal">Login / Register</button>
         {{else}}
             <ul class="nav site-nav">
                 <li class="flyout">
-                    <h1 class="task-action-btn tile solid user-reporter">{{username(_user.auth, _user.profile.name)}}</h1>
+                    <h1 class="task-action-btn tile solid user-reporter">{{username(_session.user.auth, _session.user.profile.name)}}</h1>
                     <ul class="flyout-content nav stacked">
                         <li>
                             <a class="task-action-btn tile solid" x-bind='click:toggleGamePane'>
-                                {#if _gamePane}Tasks{else}Options{/}
+                                {#if _page.active.gamePane}Tasks{else}Options{/}
                             </a>
                         </li>
                         <li><a class="task-action-btn tile solid" href="/logout">Logout</a></li>
@@ -150,12 +150,12 @@
         {{/}}
 
         <!-- party invitation notification -->
-        {#if _user.party.invitation}
+        {#if _session.user.party.invitation}
             <a style='cursor:pointer;' x-bind="click:gotoPartyChat"><i class='icon-user'></i></a>
         {/}
 
         <!-- party chat notification -->
-        {#if newChatMessages(_party.chat,_user.party.lastMessageSeen)}
+        {#if newChatMessages(_page.party.chat,_session.user.party.lastMessageSeen)}
             <a style='cursor:pointer;' x-bind="click:gotoPartyChat"><i class='icon-comment' rel='tooltip' title='New Party Messages'></i></a>
         {/}
 

@@ -5,7 +5,7 @@ misc = require './misc.coffee'
 
 module.exports.app = (appExports, model) ->
   browser = require './browser.coffee'
-  user = model.at '_user'
+  user = model.at '_session.user'
 
   ###
     Add challenge name as a tag for user
@@ -78,7 +78,7 @@ module.exports.app = (appExports, model) ->
         rewards: []
       user:
         uid: user.get('id')
-        name: helpers.username(model.get('_user.auth'), model.get('_user.profile.name'))
+        name: helpers.username(model.get('_session.user.auth'), model.get('_session.user.profile.name'))
       group: {type, id:gid}
       timestamp: +new Date
     _.each ['habits','dailys','todos','rewards'], (type) ->

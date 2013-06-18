@@ -8,7 +8,7 @@ _ = require 'lodash'
 ###
 
 module.exports.app = (appExports, model) ->
-  user = model.at('_user')
+  user = model.at('_session.user')
 
   alreadyShown = (before, after) -> !(!before and after is true)
 

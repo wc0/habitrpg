@@ -1,15 +1,15 @@
 splash = (req, res, next) ->
   isStatic = req.url.split('/')[1] is 'static'
-  unless req.query?.play? or req.getModel().get('_userId') or isStatic
+  unless req.query?.play? or req.getModel().get('_session.userId') or isStatic
     res.redirect('/static/front')
   else
     next()
 
 view = (req, res, next) ->
   model = req.getModel()
-  ## Set _mobileDevice to true or false so view can exclude portions from mobile device
-  model.set '_mobileDevice', /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(req.header 'User-Agent')
-  model.set '_nodeEnv', model.flags.nodeEnv
+  ## Set _session.flags.isMobile to true or false so view can exclude portions from mobile device
+  model.set '_session.flags.isMobile', /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(req.header 'User-Agent')
+  model.set '_session.flags.nodeEnv', model.flags.nodeEnv
   next()
 
 #CORS middleware

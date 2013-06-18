@@ -100,7 +100,7 @@
     </app:modals:modal>
 
 <hiding-bailey:>
-    {#if equal(_user.flags.newStuff,'show')}
+    {#if equal(_session.user.flags.newStuff,'show')}
         <div class='NPC-Bailey-Head'
              rel=tooltip title=Psst data-placement=top
              data-toggle=modal data-target='#new-stuff-modal'
@@ -108,8 +108,8 @@
     {/}
 
 <flash:>
-    {#if _flash.error}
+    {#if _session.flash.error}
         <ul class="unstyled alert alert-error">
-            {#each _flash.error as :error}<li>{:error}</li>{/}
+            {#each _session.flash.error as :error}<li>{:error}</li>{/}
         </ul>
     {/}

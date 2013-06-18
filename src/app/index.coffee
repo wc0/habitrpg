@@ -24,7 +24,7 @@ _ = require('lodash')
   Subscribe to the user, the users's party (meta info like party name, member ids, etc), and the party's members. 3 subscriptions.
 ###
 setupSubscriptions = (page, model, params, next, cb) ->
-  uuid = model.get('_userId') or model.session.userId # see http://goo.gl/TPYIt
+  uuid = model.get('_session.userId') or model.session.userId # see http://goo.gl/TPYIt
   selfQ = model.query('users').withId(uuid) #keep this for later
 
   # Note: due to https://github.com/codeparty/racer/issues/57, this has to come at the very beginning. The more limited
@@ -35,28 +35,28 @@ setupSubscriptions = (page, model, params, next, cb) ->
     return next(err) if err
     finished = (descriptors, paths) ->
       # Add public "Tavern" guild in
-      descriptors.unshift('groups.habitrpg'); paths.unshift('_habitRPG')
+      descriptors.unshift('groups.habitrpg'); paths.unshift('_page.tavern')
 
       # Subscribe to each descriptor
       model.subscribe.apply model, descriptors.concat ->
         [err, refs] = [arguments[0], arguments]
         return next(err) if err
         _.each paths, (path, idx) -> model.ref path, refs[idx+1]; true
-        unless model.get('_user')
+        unless model.get('_session.user')
           console.error "User not found - this shouldn't be happening!"
           return page.redirect('/logout') #delete model.session.userId
         return cb()
 
     # Get public groups first, order most-to-least # subscribers
-    model.set '_publicGroups', _.sortBy(publicGroups.get(), (g) -> -_.size(g.members))
+    model.set '_page.publicGroups', _.sortBy(publicGroups.get(), (g) -> -_.size(g.members))
 
     groupsObj = groups.get()
 
     # (1) Solo player
-    return finished([selfQ], ['_user']) if _.isEmpty(groupsObj)
+    return finished([selfQ], ['_session.user']) if _.isEmpty(groupsObj)
 
     ## (2) Party or Guild has members, fetch those users too
-    # Subscribe to the groups themselves. We separate them by _party, _guilds, and _habitRPG (the "global" guild).
+    # Subscribe to the groups themselves. We separate them by _page.party, _page.guilds, and _page.tavern (the "global" guild).
     groupsInfo = _.reduce groupsObj, ((m,g)->
       if g.type is 'guild' then m.guildIds.push(g.id) else m.partyId = g.id
       m.members = m.members.concat(g.members)
@@ -66,19 +66,19 @@ setupSubscriptions = (page, model, params, next, cb) ->
     # Fetch, not subscribe. There's nothing dynamic we need from members, just the the Group (below) which includes chat, challenges, etc
     model.query('users').publicInfo(groupsInfo.members).fetch (err, members) ->
       return next(err) if err
-      # we need _members as an object in the view, so we can iterate over _party.members as :id, and access _members[:id] for the info
+      # we need _page.members as an object in the view, so we can iterate over _page.party.members as :id, and access _page.members[:id] for the info
       mObj = members.get()
-      model.set "_members", _.object(_.pluck(mObj,'id'), mObj)
-      model.set "_membersArray", mObj
+      model.set "_page.members", _.object(_.pluck(mObj,'id'), mObj)
+      model.set "_page.membersArray", mObj
 
-      # Note - selfQ *must* come after membersQ in subscribe, otherwise _user will only get the fields restricted by party-members in store.coffee. Strang bug, but easy to get around
-      descriptors = [selfQ]; paths = ['_user']
+      # Note - selfQ *must* come after membersQ in subscribe, otherwise _session.user will only get the fields restricted by party-members in store.coffee. Strang bug, but easy to get around
+      descriptors = [selfQ]; paths = ['_session.user']
       if groupsInfo.partyId
         descriptors.unshift model.query('groups').withIds(groupsInfo.partyId)
-        paths.unshift '_party'
+        paths.unshift '_page.party'
       unless _.isEmpty(groupsInfo.guildIds)
         descriptors.unshift model.query('groups').withIds(groupsInfo.guildIds)
-        paths.unshift '_guilds'
+        paths.unshift '_page.guilds'
       finished descriptors, paths
 
 
@@ -97,7 +97,7 @@ app.get '/', (page, model, params, next) ->
 # ========== CONTROLLER FUNCTIONS ==========
 
 app.ready (model) ->
-  user = model.at('_user')
+  user = model.at('_session.user')
   misc.fixCorruptUser(model) # https://github.com/lefnire/habitrpg/issues/634
 
   #FIXME this should only be called once, on initial empty database
