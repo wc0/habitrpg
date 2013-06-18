@@ -7,6 +7,7 @@ MongoStore = require('connect-mongo')(express)
 app = require('../app')
 error = require('./serverError')
 mongoskin = require('mongoskin')
+publicDir = __dirname + "/../../public"
 
 auth = require 'derby-auth'
 priv = require './private'
@@ -44,6 +45,28 @@ store = derby.createStore(
   redis: redis
 )
 
+store.on 'bundle', (browserify) ->
+  console.log @_events.client
+  vendorScripts = [
+    "jquery-ui-1.10.2/jquery-1.9.1"
+    "jquery.cookie.min"
+    "bootstrap/js/bootstrap.min"
+    "jquery.bootstrap-growl.min"
+    "datepicker/js/bootstrap-datepicker"
+    "bootstrap-tour/bootstrap-tour"
+  ]
+  # FIXME check if mobile
+  vendorScripts.concat [
+    "jquery-ui-1.10.2/ui/jquery.ui.core"
+    "jquery-ui-1.10.2/ui/jquery.ui.widget"
+    "jquery-ui-1.10.2/ui/jquery.ui.mouse"
+    "jquery-ui-1.10.2/ui/jquery.ui.sortable"
+    "sticky"
+  ]
+  vendorScripts.forEach (s) -> browserify.add "#{publicDir}/vendor/#{s}"
+  # Add support for directly requiring coffeescript in browserify bundles
+  browserify.transform coffeeify
+
 # Authentication setup
 strategies =
   facebook:
@@ -66,7 +89,7 @@ expressApp
   .use(express.favicon()) # Gzip dynamically
   .use(express.compress()) # Respond to requests for application script bundles
   .use(app.scripts(store)) # Serve static files from the public directory
-  .use(express['static'](__dirname + "/../../public"))
+  .use(express['static'](publicDir))
 
 # Session middleware
   .use(express.cookieParser())

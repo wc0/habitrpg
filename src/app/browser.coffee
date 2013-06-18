@@ -2,35 +2,6 @@ _ = require 'lodash'
 moment = require 'moment'
 
 ###
-  Loads JavaScript files from public/vendor/*
-  Use require() to min / concatinate for faster page load
-###
-loadJavaScripts = (model) ->
-
-  # Turns out you can't have expressions in browserify require() statements
-  #vendor = '../../public/vendor'
-  #require "#{vendor}/jquery-ui-1.10.2/jquery-1.9.1"
-
-  ###
-  Internal Scripts
-  ###
-  require "../../public/vendor/jquery-ui-1.10.2/jquery-1.9.1"
-  require "../../public/vendor/jquery.cookie.min"
-  require "../../public/vendor/bootstrap/js/bootstrap.min"
-  require "../../public/vendor/jquery.bootstrap-growl.min"
-  require "../../public/vendor/datepicker/js/bootstrap-datepicker"
-  require "../../public/vendor/bootstrap-tour/bootstrap-tour"
-
-  unless (model.get('_mobileDevice') is true)
-    require "../../public/vendor/jquery-ui-1.10.2/ui/jquery.ui.core"
-    require "../../public/vendor/jquery-ui-1.10.2/ui/jquery.ui.widget"
-    require "../../public/vendor/jquery-ui-1.10.2/ui/jquery.ui.mouse"
-    require "../../public/vendor/jquery-ui-1.10.2/ui/jquery.ui.sortable"
-    require "../../public/vendor/sticky"
-
-  # note: external script loading is handled in app.on('render') near the bottom of this file (see https://groups.google.com/forum/?fromgroups=#!topic/derbyjs/x8FwdTLEuXo)
-
-###
   Setup jQuery UI Sortable
 ###
 setupSortable = (model) ->
@@ -217,7 +188,6 @@ googleCharts = ->
     google.load "visualization", "1", {packages:["corechart"], callback: ->}
 
 module.exports.app = (appExports, model, app) ->
-  loadJavaScripts(model)
   setupGrowlNotifications(model) unless model.get('_mobileDevice')
 
   app.on 'render', (ctx) ->
