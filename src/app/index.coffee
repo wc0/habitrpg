@@ -1,13 +1,10 @@
-derby = require 'derby'
-
-# Init app & reference its functions
-app = derby.createApp module
-{get, view, ready} = app
+app = require('derby').createApp module
 
 # Include library components
-app.use require('derby-ui-boot'), {styles: []}
-app.use require '../../ui'
-app.use require 'derby-auth/components'
+app
+  .use(require('derby-ui-boot'), {styles: []})
+  .use(require('../../ui'))
+  .use(require 'derby-auth/components')
 
 # Translations
 i18n = require './i18n'
@@ -18,11 +15,10 @@ i18n.localize app,
   checkHeader: true
 
 misc = require('./misc')
-misc.viewHelpers view
+misc.viewHelpers app.view
 
 _ = require('lodash')
 algos = require 'habitrpg-shared/script/algos'
-
 
 ###
   Subscribe to the user, the users's party (meta info like party name, member ids, etc), and the party's members. 3 subscriptions.
@@ -88,7 +84,7 @@ setupSubscriptions = (page, model, params, next, cb) ->
 
 # ========== ROUTES ==========
 
-get '/', (page, model, params, next) ->
+app.get '/', (page, model, params, next) ->
   return page.redirect '/' if page.params?.query?.play?
 
   # removed force-ssl (handled in nginx), see git for code
@@ -100,7 +96,7 @@ get '/', (page, model, params, next) ->
 
 # ========== CONTROLLER FUNCTIONS ==========
 
-ready (model) ->
+app.ready (model) ->
   user = model.at('_user')
   misc.fixCorruptUser(model) # https://github.com/lefnire/habitrpg/issues/634
 
