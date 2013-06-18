@@ -1,11 +1,12 @@
 express = require('express')
+coffeeify = require('coffeeify')
 derby = require('derby')
 racerBrowserChannel = require('racer-browserchannel')
 LiveDbMongo = require('livedb-mongo').LiveDbMongo
 MongoStore = require('connect-mongo')(express)
 app = require('../app')
-error = require('./error')
-#mongoskin = require('mongoskin')
+error = require('./serverError')
+mongoskin = require('mongoskin')
 
 auth = require 'derby-auth'
 priv = require './private'
@@ -33,9 +34,9 @@ redis.select process.env.REDIS_DB or 7
 
 # Get Mongo configuration
 mongoUrl = process.env.NODE_DB_URI or "mongodb://localhost:27017/habitrpg"
-#mongo = mongoskin.db(mongoUrl + "?auto_reconnect",
-#  safe: true
-#)
+mongo = mongoskin.db(mongoUrl + "?auto_reconnect",
+  safe: true
+)
 
 # The store creates models and syncs data
 store = derby.createStore(
