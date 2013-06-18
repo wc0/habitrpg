@@ -1,41 +1,48 @@
-http = require 'http'
-path = require 'path'
-express = require 'express'
-gzippo = require 'gzippo'
-derby = require 'derby'
-racer = require 'racer'
-auth = require 'derby-auth'
-app = require '../app'
-serverError = require './serverError'
+express = require('express')
+derby = require('derby')
+racerBrowserChannel = require('racer-browserchannel')
+LiveDbMongo = require('livedb-mongo').LiveDbMongo
 MongoStore = require('connect-mongo')(express)
-redis = require 'redis'
-liveDbMongo = require 'livedb-mongo'
+app = require('../app')
+error = require('./error')
+#mongoskin = require('mongoskin')
+
+auth = require 'derby-auth'
 priv = require './private'
 habitrpgStore = require './store'
 middleware = require './middleware'
-
 helpers = require("habitrpg-shared/script/helpers")
 
 # Infinite stack trace
 Error.stackTraceLimit = Infinity if process.env.NODE_ENV is 'development'
 
-## SERVER CONFIGURATION ##
+# Set up our express app
 
-expressApp = express()
-server = http.createServer expressApp
-module.exports = server
+expressApp = module.exports = express()
 
-redis = redis.createClient()
+# Get Redis configuration
+if process.env.REDIS_HOST
+  redis = require("redis").createClient(process.env.REDIS_PORT, process.env.REDIS_HOST)
+  redis.auth process.env.REDIS_PASSWORD
+else if process.env.REDISCLOUD_URL
+  redisUrl = require("url").parse(process.env.REDISCLOUD_URL)
+  redis = require("redis").createClient(redisUrl.port, redisUrl.hostname)
+  redis.auth redisUrl.auth.split(":")[1]
+else
+  redis = require("redis").createClient()
+redis.select process.env.REDIS_DB or 7
 
-module.exports.habitStore = store = derby.createStore
-  db: liveDbMongo(process.env.NODE_DB_URI + '?auto_reconnect', safe: true)
+# Get Mongo configuration
+mongoUrl = process.env.NODE_DB_URI or "mongodb://localhost:27017/habitrpg"
+#mongo = mongoskin.db(mongoUrl + "?auto_reconnect",
+#  safe: true
+#)
+
+# The store creates models and syncs data
+store = derby.createStore(
+  db: new LiveDbMongo(mongo)
   redis: redis
-  listen: server
-
-ONE_YEAR = 1000 * 60 * 60 * 24 * 365
-TWO_WEEKS = 1000 * 60 * 60 * 24 * 14
-root = path.dirname path.dirname __dirname
-publicPath = path.join root, 'public'
+)
 
 # Authentication setup
 strategies =
@@ -52,44 +59,59 @@ options =
 # This has to happen before our middleware stuff
 auth.store(store, habitrpgStore.customAccessControl)
 
-mongo_store = new MongoStore {url: process.env.NODE_DB_URI}, ->
-  expressApp
-    .use(middleware.allowCrossDomain)
-    .use(express.favicon("#{publicPath}/favicon.ico"))
-    # Gzip static files and serve from memory
-    .use(gzippo.staticGzip(publicPath, maxAge: ONE_YEAR))
-    # Gzip dynamically rendered content
-    .use(express.compress())
-    .use(express.bodyParser())
-    .use(express.methodOverride())
-    # Uncomment and supply secret to add Derby session handling
-    # Derby session middleware creates req.session and socket.io sessions
-    .use(express.cookieParser())
-    .use(store.sessionMiddleware
-      secret: process.env.SESSION_SECRET || 'YOUR SECRET HERE'
-      cookie: { maxAge: TWO_WEEKS } # defaults to 2 weeks? aka, can delete this line?
-      store: mongo_store
+expressApp
+  .use(middleware.allowCrossDomain)
+  .use(express.favicon()) # Gzip dynamically
+  .use(express.compress()) # Respond to requests for application script bundles
+  .use(app.scripts(store)) # Serve static files from the public directory
+  .use(express['static'](__dirname + "/../../public"))
+
+# Session middleware
+  .use(express.cookieParser())
+  .use(express.session(
+    secret: process.env.SESSION_SECRET or "YOUR SECRET HERE"
+    store: new MongoStore(
+      url: mongoUrl
+      safe: true
     )
-    # Adds req.getModel method
-    .use(store.modelMiddleware())
-    .use(middleware.translate)
-    # API should be hit before all other routes
-    .use('/api/v1', require('./api').middleware)
-    .use('/api/v2', require('./apiv2').middleware)
-    .use(require('./deprecated').middleware)
-    # Show splash page for newcomers
-    .use(middleware.splash)
-    .use(priv.middleware)
-    .use(middleware.view)
-    .use(auth.middleware(strategies, options))
-    # Creates an express middleware from the app's routes
-    .use(app.router())
-    .use(require('./static').middleware)
-    .use(expressApp.router)
-    .use(serverError(root))
+  ))
 
-  priv.routes(expressApp)
+#.use(everyauth.middleware(autoSetupRoutes: false))
 
-  # Errors
-  expressApp.all '*', (req) ->
-    throw "404: #{req.url}"
+# Add browserchannel client-side scripts to model bundles created by store,
+# and return middleware for responding to remote client messages
+  .use(racerBrowserChannel(store))
+# Add req.getModel() method
+  .use(store.modelMiddleware())
+
+# Custom Translations
+  .use(middleware.translate)
+
+# API should be hit before all other routes
+  .use('/api/v1', require('./api').middleware)
+  .use('/api/v2', require('./apiv2').middleware)
+  .use(require('./deprecated').middleware)
+
+# Other custom middlewares
+  .use(middleware.splash) # Show splash page for newcomers
+  .use(priv.middleware)
+  .use(middleware.view)
+  .use(auth.middleware(strategies, options))
+
+# Parse form data
+  .use(express.bodyParser())
+  .use(express.methodOverride())
+
+#.use(rememberUser)
+
+# Create an express middleware from the app's routes
+  .use(app.router())
+  .use(require('./static').middleware) #custom static middleware
+  .use error()
+
+priv.routes(expressApp)
+
+# SERVER-SIDE ROUTES #
+
+expressApp.all "*", (req, res, next) ->
+  next "404: " + req.url
