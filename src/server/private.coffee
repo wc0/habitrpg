@@ -1,5 +1,5 @@
 _ = require 'lodash'
-misc = require "../app/misc"
+misc = require "../app/misc.coffee"
 
 module.exports.middleware = (req, res, next) ->
   model = req.getModel()

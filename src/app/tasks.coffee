@@ -1,8 +1,7 @@
-algos = require 'habitrpg-shared/script/algos'
-helpers = require 'habitrpg-shared/script/helpers'
+{algos, helpers} = require 'habitrpg-shared'
 _ = require 'lodash'
 moment = require 'moment'
-misc = require './misc'
+misc = require './misc.coffee'
 
 
 ###

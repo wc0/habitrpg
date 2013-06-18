@@ -1,8 +1,8 @@
 _ = require('lodash')
-helpers = require('habitrpg-shared/script/helpers')
+{helpers} = require('habitrpg-shared')
 
 module.exports.app = (appExports, model, app) ->
-  browser = require './browser'
+  browser = require './browser.coffee'
 
   _currentTime = model.at '_currentTime'
   _currentTime.setNull +new Date

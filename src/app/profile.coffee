@@ -1,8 +1,6 @@
-helpers = require 'habitrpg-shared/script/helpers'
-algos = require 'habitrpg-shared/script/algos'
-browser = require './browser'
-items = require './items'
-misc = require './misc'
+{helpers, algos, items} = require 'habitrpg-shared'
+browser = require './browser.coffee'
+misc = require './misc.coffee'
 _ = require 'lodash'
 
 module.exports.app = (appExports, model) ->

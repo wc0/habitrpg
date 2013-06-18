@@ -1,6 +1,7 @@
 _ = require 'lodash'
-{ randomVal } = require 'habitrpg-shared/script/helpers'
-{ pets, hatchingPotions } = require('habitrpg-shared/script/items').items
+{items, helpers} = require 'habitrpg-shared'
+{ randomVal } = helpers
+{ pets, hatchingPotions } = items.items
 
 ###
   app exports

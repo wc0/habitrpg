@@ -1,10 +1,10 @@
 _ = require 'lodash'
-helpers = require 'habitrpg-shared/script/helpers'
+{helpers} = require 'habitrpg-shared'
 async = require 'async'
-misc = require './misc'
+misc = require './misc.coffee'
 
 module.exports.app = (appExports, model) ->
-  browser = require './browser'
+  browser = require './browser.coffee'
   user = model.at '_user'
 
   ###

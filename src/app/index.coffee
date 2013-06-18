@@ -7,18 +7,18 @@ app
   .use(require 'derby-auth/components')
 
 # Translations
-i18n = require './i18n'
+i18n = require './i18n.coffee'
 i18n.localize app,
   availableLocales: ['en', 'he', 'bg', 'nl']
   defaultLocale: 'en'
   urlScheme: false
   checkHeader: true
 
-misc = require('./misc')
+misc = require('./misc.coffee')
 misc.viewHelpers app.view
 
 _ = require('lodash')
-algos = require 'habitrpg-shared/script/algos'
+{algos} = require 'habitrpg-shared'
 
 ###
   Subscribe to the user, the users's party (meta info like party name, member ids, etc), and the party's members. 3 subscriptions.
@@ -89,7 +89,7 @@ app.get '/', (page, model, params, next) ->
 
   # removed force-ssl (handled in nginx), see git for code
   setupSubscriptions page, model, params, next, ->
-    require('./items').server(model)
+    require('./items.coffee').server(model)
     misc.setupRefLists(model)
     page.render()
 
@@ -108,18 +108,18 @@ app.ready (model) ->
     name: "HabitRPG"
     type: "guild"
 
-  browser = require './browser'
-  require('./tasks').app(exports, model)
-  require('./items').app(exports, model)
-  require('./groups').app(exports, model, app)
-  require('./profile').app(exports, model)
-  require('./pets').app(exports, model)
-  require('../server/private').app(exports, model)
-  require('./debug').app(exports, model) if model.flags.nodeEnv != 'production'
+  browser = require './browser.coffee'
+  require('./tasks.coffee').app(exports, model)
+  require('./items.coffee').app(exports, model)
+  require('./groups.coffee').app(exports, model, app)
+  require('./profile.coffee').app(exports, model)
+  require('./pets.coffee').app(exports, model)
+  require('../server/private.coffee').app(exports, model)
+  require('./debug.coffee').app(exports, model) if model.flags.nodeEnv != 'production'
   browser.app(exports, model, app)
-  require('./unlock').app(exports, model)
-  require('./filters').app(exports, model)
-  require('./challenges').app(exports, model)
+  require('./unlock.coffee').app(exports, model)
+  require('./filters.coffee').app(exports, model)
+  require('./challenges.coffee').app(exports, model)
 
   # used for things like remove website, chat, etc
   exports.removeAt = (e, el) ->

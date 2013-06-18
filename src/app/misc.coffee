@@ -1,7 +1,6 @@
 _ = require 'lodash'
-algos = require 'habitrpg-shared/script/algos'
-items = require('habitrpg-shared/script/items').items
-helpers = require('habitrpg-shared/script/helpers')
+{algos, helpers, items} = require 'habitrpg-shared'
+{items} = items
 
 module.exports.batchTxn = batchTxn = (model, cb, options) ->
   user = model.at("_user")
@@ -168,7 +167,7 @@ module.exports.fixCorruptUser = (model) ->
         console.error uObj.id + "'s #{type}s were corrupt."
       true
     resetDom = !_.isEmpty(paths)
-  require('./browser').resetDom(model) if resetDom
+  require('./browser.coffee').resetDom(model) if resetDom
 
 module.exports.viewHelpers = (view) ->
 

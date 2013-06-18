@@ -1,4 +1,4 @@
-items = require 'habitrpg-shared/script/items'
+{items} = require 'habitrpg-shared'
 _ = require 'lodash'
 
 ###

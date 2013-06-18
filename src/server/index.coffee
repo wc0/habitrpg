@@ -10,9 +10,9 @@ mongoskin = require('mongoskin')
 publicDir = __dirname + "/../../public"
 
 auth = require 'derby-auth'
-priv = require './private'
+priv = require './private.coffee'
 middleware = require './middleware'
-helpers = require("habitrpg-shared/script/helpers")
+{helpers} = require("habitrpg-shared")
 
 # Infinite stack trace
 Error.stackTraceLimit = Infinity if process.env.NODE_ENV is 'development'
