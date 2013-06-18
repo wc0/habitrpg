@@ -7,9 +7,8 @@ splash = (req, res, next) ->
 
 view = (req, res, next) ->
   model = req.getModel()
-  ## Set _session.flags.isMobile to true or false so view can exclude portions from mobile device
   model.set '_session.flags.isMobile', /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(req.header 'User-Agent')
-  model.set '_session.flags.nodeEnv', model.flags.nodeEnv
+  model.set '_session.flags.nodeEnv', process.env.NODE_ENV
   next()
 
 #CORS middleware
