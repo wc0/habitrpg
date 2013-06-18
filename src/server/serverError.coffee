@@ -1,21 +1,20 @@
+path = require 'path'
 derby = require 'derby'
-{isProduction} = derby.util
 
-module.exports = (root) ->
-  staticPages = derby.createStatic root
+module.exports = ->
+  staticPages = derby.createStatic path.dirname(path.dirname(__dirname))
 
-  return (err, req, res, next) ->
-    return next() unless err?
+return (err, req, res, next) ->
+  return next() unless err?
 
-    console.log(if err.stack then err.stack else err)
+  console.log if err.stack then err.stack else err
 
-    ## Customize error handling here ##
-    message = err.message || err.toString()
-    status = parseInt message
-    if status is 404
-      staticPages.render '404', res, {url: req.url}, 404
-    else if status >= 400 and status < 600
-      res.send status
-    else
-      #TODO send error to email
-      res.redirect('/500.html')
+  # Customize error handling here
+  message = err.message || err.toString()
+  status = parseInt message
+  status = if 400 <= status < 600 then status else 500
+
+  if status is 403 || status is 404 || status is 500
+    staticPages.render 'error', res, status.toString(), status
+  else
+    res.send status
