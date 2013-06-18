@@ -8,20 +8,13 @@ auth = require 'derby-auth'
 app = require '../app'
 serverError = require './serverError'
 MongoStore = require('connect-mongo')(express)
+redis = require 'redis'
+liveDbMongo = require 'livedb-mongo'
 priv = require './private'
 habitrpgStore = require './store'
 middleware = require './middleware'
 
 helpers = require("habitrpg-shared/script/helpers")
-
-## RACER CONFIGURATION ##
-
-#racer.io.set('transports', ['xhr-polling'])
-racer.ioClient.set('reconnection limit', 300000) # max reconect timeout to 5 minutes
-racer.set('bundleTimeout', 40000)
-#unless process.env.NODE_ENV == 'production'
-#  racer.use(racer.logPlugin)
-#  derby.use(derby.logPlugin)
 
 # Infinite stack trace
 Error.stackTraceLimit = Infinity if process.env.NODE_ENV is 'development'
@@ -32,9 +25,11 @@ expressApp = express()
 server = http.createServer expressApp
 module.exports = server
 
-derby.use require('racer-db-mongo')
+redis = redis.createClient()
+
 module.exports.habitStore = store = derby.createStore
-  db: {type: 'Mongo', uri: process.env.NODE_DB_URI, safe:true}
+  db: liveDbMongo(process.env.NODE_DB_URI + '?auto_reconnect', safe: true)
+  redis: redis
   listen: server
 
 ONE_YEAR = 1000 * 60 * 60 * 24 * 365
