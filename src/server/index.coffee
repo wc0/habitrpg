@@ -9,7 +9,6 @@ error = require('./error')
 
 auth = require 'derby-auth'
 priv = require './private'
-habitrpgStore = require './store'
 middleware = require './middleware'
 helpers = require("habitrpg-shared/script/helpers")
 
@@ -57,7 +56,9 @@ options =
   schema: helpers.newUser(true)
 
 # This has to happen before our middleware stuff
-auth.store(store, habitrpgStore.customAccessControl)
+auth.store.init(store) #setup
+#auth.store.basicUserAccess(store) # we don't want default access
+require('./store')(store) # setup our own accessControl
 
 expressApp
   .use(middleware.allowCrossDomain)
