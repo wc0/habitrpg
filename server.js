@@ -1,3 +1,5 @@
+var nodemailer = require("nodemailer");
+
 // Load nconf and define default configuration values if config.json or ENV vars are not found
 var conf = require('nconf');
 conf.argv().env().file({ file: __dirname + "/config.json" }).defaults({
@@ -36,17 +38,19 @@ if (process.env.NODE_ENV === 'development') {
 process.on('uncaughtException', function (error) {
 
     function sendEmail(mailData) {
-        var nodemailer = require("derby-auth/node_modules/nodemailer");
 
-        // create reusable transport method (opens pool of SMTP connections)
-        // TODO derby-auth isn't currently configurable here, if you need customizations please send pull request
-        var smtpTransport = nodemailer.createTransport("SMTP",{
+        var creds = {
             service: process.env.SMTP_SERVICE,
             auth: {
                 user: process.env.SMTP_USER,
                 pass: process.env.SMTP_PASS
             }
-        });
+        };
+
+        if (!nodemailer || !creds.service || !creds.auth.user || !creds.auth.pass) return;
+
+        // create reusable transport method (opens pool of SMTP connections)
+        var smtpTransport = nodemailer.createTransport("SMTP", creds);
 
         // send mail with defined transport object
         smtpTransport.sendMail(mailData, function(error, response){

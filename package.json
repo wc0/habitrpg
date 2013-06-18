@@ -27,7 +27,8 @@
     "resolve": "~0.2.3",
     "relative-date": "~1.1.1",
     "lodash": "~1.2.1",
-    "async": "~0.2.9"
+    "async": "~0.2.9",
+    "nodemailer": "~0.4.4"
   },
   "devDependencies": {
     "expect.js": "~0.2.0",
