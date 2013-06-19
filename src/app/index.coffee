@@ -110,7 +110,6 @@ app.get '/', (page, model, params, next) ->
 
 app.ready (model) ->
   user = model.at('_session.user')
-  misc.fixCorruptUser(model) # https://github.com/lefnire/habitrpg/issues/634
 
   #FIXME this should only be called once, on initial empty database
   model.setNull "groups.habitrpg",
