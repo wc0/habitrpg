@@ -7,7 +7,7 @@ module.exports.app = (app, model) ->
   currentTime = model.at '_page.currentTime'
   currentTime.setNull +new Date
   # Every 60 seconds, reset the current time so that the chat can update relative times
-  setInterval (->_page.currentTime.set +new Date), 60000
+  setInterval (->currentTime.set +new Date), 60000
 
   user = model.at('_session.user')
 
