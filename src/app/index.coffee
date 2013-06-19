@@ -18,7 +18,7 @@ misc = require('./misc.coffee')
 misc.viewHelpers app.view
 
 _ = require('lodash')
-{algos} = require 'habitrpg-shared'
+{algos, helpers} = require 'habitrpg-shared'
 
 ###
   Subscribe to the user, the users's party (meta info like party name, member ids, etc), and the party's members. 3 subscriptions.
@@ -134,17 +134,17 @@ app.ready (model) ->
   ###
     Cron
   ###
-  misc.batchTxn model, (uObj, paths) ->
-    # habitrpg-shared/algos requires uObj.habits, uObj.dailys etc instead of uObj.tasks
-    _.each ['habit','daily','todo','reward'], (type) -> uObj["#{type}s"] = _.where(uObj.tasks, {type}); true
-    algos.cron uObj, {paths}
-    # for new user, just set lastCron - no need to reset dom.
-    # remember that the properties are set from uObj & paths AFTER the return of this callback
-    return if _.isEmpty(paths) or (paths['lastCron'] and _.size(paths) is 1)
-    # for everyone else, we need to reset dom - too many changes have been made and won't it breaks dom listeners.
-    if lostHp = delete paths['stats.hp'] # we'll set this manually so we can get a cool animation
+  uObj = user.get(); paths = {}
+  # habitrpg-shared/algos requires uObj.habits, uObj.dailys etc instead of uObj.tasks
+  _.each ['habit','daily','todo','reward'], (type) -> uObj["#{type}s"] = _.where(uObj.tasks, {type}); true
+  algos.cron uObj, {paths}
+  # for new user, just set lastCron - no need to reset dom.
+  unless _.isEmpty(paths) or (paths['lastCron'] and _.size(paths) is 1)
+    if (lostHp = delete paths['stats.hp'])? # we'll set this manually so we can get a cool animation
       setTimeout ->
-        browser.resetDom(model)
+        # we need to reset dom - too many changes have been made and won't it breaks dom listeners.
+        #browser.resetDom(model)
         user.set 'stats.hp', uObj.stats.hp
       , 750
-  ,{cron:true}
+    #user.pass({cron:true}).setDiff(uObj)
+    _.each paths, (v,k) -> user.pass({cron:true}).set(k,helpers.dotGet(k, uObj));true
