@@ -112,7 +112,7 @@ setupGrowlNotifications = (model) ->
     growlNotification(html, type)
 
   # Setup listeners which trigger notifications
-  user.on 'set', 'stats.hp', (captures, args) ->
+  user.on 'change', 'stats.hp', (captures, args) ->
     num = captures - args
     rounded = Math.abs(num.toFixed(1))
     if num < 0
@@ -120,7 +120,7 @@ setupGrowlNotifications = (model) ->
     else if num > 0
       statsNotification "<i class='icon-heart'></i> + #{rounded} HP", 'hp' # gained hp from potion/level? 
   
-  user.on 'set', 'stats.exp', (captures, args, isLocal, silent=false) ->
+  user.on 'change', 'stats.exp', (captures, args, isLocal, silent=false) ->
     # unless silent
     num = captures - args
     rounded = Math.abs(num.toFixed(1))
@@ -143,7 +143,7 @@ setupGrowlNotifications = (model) ->
     else if silver > 0
       return "#{silver} <i class='icon-silver'></i>"
 
-  user.on 'set', 'stats.gp', (captures, args) ->
+  user.on 'change', 'stats.gp', (captures, args) ->
     money = captures - args
     return unless !!money # why is this happening? gotta find where stats.gp is being set from (-)habit
     sign = if money < 0 then '-' else '+'
@@ -156,12 +156,12 @@ setupGrowlNotifications = (model) ->
       statsNotification "+ #{showCoins(bonus)}  Streak Bonus!"
       model.del('_page.tmp.streakBonus')
 
-  user.on 'set', 'items.*', (item, after, before) ->
+  user.on 'change', 'items.*', (item, after, before) ->
     if item in ['armor','weapon','shield','head'] and parseInt(after) < parseInt(before)
       item = 'helm' if item is 'head' # don't want to day "lost a head"
       statsNotification "<i class='icon-death'></i> Respawn!", "death"
 
-  user.on 'set', 'stats.lvl', (captures, args) ->
+  user.on 'change', 'stats.lvl', (captures, args) ->
     if captures > args
       statsNotification '<i class="icon-chevron-up"></i> Level Up!', 'lvl'
 

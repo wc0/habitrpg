@@ -120,8 +120,8 @@ module.exports.app = (app, model) ->
     Chat Functionality
   ###
 
-  model.on 'unshift', '_page.party.chat', -> $('.chat-message').tooltip()
-  model.on 'unshift', '_page.tavern.chat', -> $('.chat-message').tooltip()
+  model.on 'insert', '_page.party.chat', -> $('.chat-message').tooltip()
+  model.on 'insert', '_page.tavern.chat', -> $('.chat-message').tooltip()
 
   app.fn 'sendChat', (e,el) ->
     text = model.get '_page.new.chat'
