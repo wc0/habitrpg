@@ -6,9 +6,9 @@ module.exports.middleware = (req, res, next) ->
   model.set '_session.stripePubKey', process.env.STRIPE_PUB_KEY
   return next()
 
-module.exports.app = (appExports, model) ->
+module.exports.app = (app, model) ->
 
-  appExports.showStripe = (e, el) ->
+  app.fn 'showStripe', (e, el) ->
     token = (res) ->
       $.ajax({
          type: "POST",
@@ -33,7 +33,7 @@ module.exports.app = (appExports, model) ->
   ###
     Buy Reroll Button
   ###
-  appExports.buyReroll = ->
+  app.fn 'buyReroll', ->
     misc.batchTxn model, (uObj, paths, batch) ->
       uObj.balance -= 1; paths['balance'] =1
       _.each uObj.tasks, (task) ->

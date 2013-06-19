@@ -7,7 +7,7 @@ _ = require 'lodash'
   Listeners to enabled flags, set notifications to the user when they've unlocked features
 ###
 
-module.exports.app = (appExports, model) ->
+module.exports.app = (app, model) ->
   user = model.at('_session.user')
 
   alreadyShown = (before, after) -> !(!before and after is true)

@@ -7,10 +7,10 @@ misc = require './misc.coffee'
 ###
   Make scoring functionality available to the app
 ###
-module.exports.app = (appExports, model) ->
+module.exports.app = (app, model) ->
   user = model.at('_session.user')
 
-  appExports.addTask = (e, el) ->
+  app.fn 'addTask', (e, el) ->
     type = $(el).attr('data-task-type')
     newModel = model.at('_page.new.' + type.charAt(0).toUpperCase() + type.slice(1))
     text = newModel.get()
@@ -42,34 +42,34 @@ module.exports.app = (appExports, model) ->
 
     newModel.set ''
 
-  appExports.del = (e) ->
+  app.fn 'del', (e) ->
     return unless confirm("Are you sure you want to delete this task?") is true
     $('[rel=tooltip]').tooltip('hide')
     user.del "tasks.#{e.get('id')}"
     e.at().remove()
 
 
-  appExports.clearCompleted = (e, el) ->
+  app.fn 'clearCompleted', (e, el) ->
     completedIds =  _.pluck( _.where(model.get("_page.lists.tasks.#{user.get('id')}.todos"), {completed:true}), 'id')
     todoIds = user.get('todoIds')
 
     _.each completedIds, (id) -> user.del "tasks.#{id}"; true
     user.set 'todoIds', _.difference(todoIds, completedIds)
 
-  appExports.toggleDay = (e, el) ->
+  app.fn 'toggleDay', (e, el) ->
     task = model.at(e.target)
     if /active/.test($(el).attr('class')) # previous state, not current
       task.set('repeat.' + $(el).attr('data-day'), false)
     else
       task.set('repeat.' + $(el).attr('data-day'), true)
 
-  appExports.toggleTaskEdit = (e, el) ->
+  app.fn 'toggleTaskEdit', (e, el) ->
     id = e.get('id')
     [editPath, chartPath] = ["_page.editing.tasks.#{id}", "_page.charts.#{id}"]
     model.set editPath, !(model.get editPath)
     model.set chartPath, false
 
-  appExports.toggleChart = (e, el) ->
+  app.fn 'toggleChart', (e, el) ->
     id = $(el).attr('data-id')
     [historyPath, togglePath] = ['','']
 
@@ -94,19 +94,19 @@ module.exports.app = (appExports, model) ->
     chart = new google.visualization.LineChart $(".#{id}-chart")[0]
     chart.draw(data, options)
 
-  appExports.todosShowRemaining = -> model.set '_page.active.completed', false
-  appExports.todosShowCompleted = -> model.set '_page.active.completed', true
+  app.fn 'todosShowRemaining', -> model.set '_page.active.completed', false
+  app.fn 'todosShowCompleted', -> model.set '_page.active.completed', true
 
   ###
     Call scoring functions for habits & rewards (todos & dailies handled below)
   ###
-  appExports.score = (e, el) ->
+  app.fn 'score', (e, el) ->
     id = $(el).parents('li').attr('data-id')
     direction = $(el).attr('data-direction')
     misc.score(model, id, direction, true)
 
   ###
-    This is how we handle appExports.score for todos & dailies. Due to Derby's special handling of `checked={:task.completd}`,
+    This is how we handle app.score for todos & dailies. Due to Derby's special handling of `checked={:task.completd}`,
     the above function doesn't work so we need a listener here
   ###
   user.on 'set', 'tasks.*.completed', (i, completed, previous, isLocal, passed) ->
@@ -117,7 +117,7 @@ module.exports.app = (appExports, model) ->
   ###
     Undo
   ###
-  appExports.undo = () ->
+  app.fn 'undo', () ->
     undo = model.get '_page.undo'
     clearTimeout(undo.timeoutId) if undo?.timeoutId
     model.del '_page.undo'
@@ -131,15 +131,15 @@ module.exports.app = (appExports, model) ->
         user.set "#{taskPath}.#{key}", val
       true
 
-  appExports.tasksToggleAdvanced = (e, el) ->
+  app.fn 'tasksToggleAdvanced', (e, el) ->
     $(el).next('.advanced-option').toggleClass('visuallyhidden')
 
-  appExports.tasksSaveAndClose = ->
+  app.fn 'tasksSaveAndClose', ->
     # When they update their notes, re-establish tooltip & popover
     $('[rel=tooltip]').tooltip()
     $('[rel=popover]').popover()
 
-  appExports.tasksSetPriority = (e, el) ->
+  app.fn 'tasksSetPriority', (e, el) ->
     dataId = $(el).parent('[data-id]').attr('data-id')
     #"_session.user.tasks.#{dataId}"
     model.at(e.target).set 'priority', $(el).attr('data-priority')

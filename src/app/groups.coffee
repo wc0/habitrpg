@@ -1,17 +1,17 @@
 _ = require('lodash')
 {helpers} = require('habitrpg-shared')
 
-module.exports.app = (appExports, model, app) ->
+module.exports.app = (app, model) ->
   browser = require './browser.coffee'
 
-  _page.currentTime = model.at '_page.currentTime'
-  _page.currentTime.setNull +new Date
+  currentTime = model.at '_page.currentTime'
+  currentTime.setNull +new Date
   # Every 60 seconds, reset the current time so that the chat can update relative times
   setInterval (->_page.currentTime.set +new Date), 60000
 
   user = model.at('_session.user')
 
-  appExports.groupCreate = (e,el) ->
+  app.fn 'groupCreate', (e,el) ->
     type = $(el).attr('data-type')
     newGroup =
       name: model.get("_page.new.group.name")
@@ -35,20 +35,20 @@ module.exports.app = (appExports, model, app) ->
       model.add 'groups', newGroup, ->
         user.incr 'balance', -1, ->location.reload()
 
-  appExports.toggleGroupEdit = (e, el) ->
+  app.fn 'toggleGroupEdit', (e, el) ->
     path = "_page.editing.groups.#{$(el).attr('data-gid')}"
     model.set path, !model.get(path)
 
-  appExports.toggleLeaderMessageEdit = (e, el) ->
+  app.fn 'toggleLeaderMessageEdit', (e, el) ->
     path = "_page.editing.leaderMessage.#{$(el).attr('data-gid')}"
     model.set path, !model.get(path)
 
-  appExports.groupAddWebsite = (e, el) ->
+  app.fn 'groupAddWebsite', (e, el) ->
     test = e.get()
     e.at().unshift 'websites', model.get('_page.new.groupWebsite')
     model.del '_page.new.groupWebsite'
 
-  appExports.groupInvite = (e,el) ->
+  app.fn 'groupInvite', (e,el) ->
     uid = model.get('_page.new.groupInvite').replace(/[\s"]/g, '')
     model.set '_page.new.groupInvite', ''
     return if _.isEmpty(uid)
@@ -85,22 +85,22 @@ module.exports.app = (appExports, model, app) ->
   joinGroup = (gid) ->
     model.push("groups.#{gid}.members", user.get('id'), ->location.reload())
 
-  appExports.joinGroup = (e, el) -> joinGroup e.get('id')
+  app.fn 'joinGroup', (e, el) -> joinGroup e.get('id')
 
-  appExports.acceptInvitation = (e,el) ->
+  app.fn 'acceptInvitation', (e,el) ->
     gid = e.get('id')
     if $(el).attr('data-type') is 'party'
       user.set 'invitations.party', null, ->joinGroup(gid)
     else
       e.at().remove ->joinGroup(gid)
 
-  appExports.rejectInvitation = (e, el) ->
+  app.fn 'rejectInvitation', (e, el) ->
     clear = -> browser.resetDom(model)
     if e.at().path().indexOf('party') != -1
       model.del e.at().path(), clear
     else e.at().remove clear
 
-  appExports.groupLeave = (e,el) ->
+  app.fn 'groupLeave', (e,el) ->
     if confirm("Leave this group, are you sure?") is true
       uid = user.get('id')
       group = model.at "groups.#{$(el).attr('data-id')}"
@@ -123,7 +123,7 @@ module.exports.app = (appExports, model, app) ->
   model.on 'unshift', '_page.party.chat', -> $('.chat-message').tooltip()
   model.on 'unshift', '_page.tavern.chat', -> $('.chat-message').tooltip()
 
-  appExports.sendChat = (e,el) ->
+  app.fn 'sendChat', (e,el) ->
     text = model.get '_page.new.chat'
     # Check for non-whitespace characters
     return unless /\S/.test text
@@ -163,11 +163,11 @@ module.exports.app = (appExports, model, app) ->
     type = $(el).attr('data-type')
     model.set '_session.user.party.lastMessageSeen', chat.get()[0].id  if group.get('type') is 'party'
 
-  appExports.chatKeyup = (e, el, next) ->
+  app.fn 'chatKeyup', (e, el, next) ->
     return next() unless e.keyCode is 13
-    appExports.sendChat(e, el)
+    app.sendChat(e, el)
 
-  appExports.deleteChatMessage = (e) ->
+  app.fn 'deleteChatMessage', (e) ->
     if confirm("Delete chat message?") is true
       e.at().remove() #requires the {#with}
 
@@ -177,11 +177,11 @@ module.exports.app = (appExports, model, app) ->
       return false unless messages?.length > 0
       model.set '_session.user.party.lastMessageSeen', messages[0].id
 
-  appExports.gotoPartyChat = ->
+  app.fn 'gotoPartyChat', ->
     model.set '_page.active.gamePane', true, ->
       $('#party-tab-link').tab('show')
 
-  appExports.assignGroupLeader = (e, el) ->
+  app.fn 'assignGroupLeader', (e, el) ->
     newLeader = model.get('_page.new.groupLeader')
     if newLeader and (confirm("Assign new leader, you sure?") is true)
       e.at().set('leader', newLeader, ->browser.resetDom(model)) if newLeader

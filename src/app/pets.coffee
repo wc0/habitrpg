@@ -6,13 +6,13 @@ _ = require 'lodash'
 ###
   app exports
 ###
-module.exports.app = (appExports, model) ->
+module.exports.app = (app, model) ->
   user = model.at '_session.user'
 
-  appExports.chooseEgg = (e, el) ->
+  app.fn 'chooseEgg', (e, el) ->
     model.ref '_page.hatchEgg', e.at()
 
-  appExports.hatchEgg = (e, el) ->
+  app.fn 'hatchEgg', (e, el) ->
     hatchingPotionName = $(el).children('select').val()
     myHatchingPotion = user.get 'items.hatchingPotions'
     egg = model.get '_page.hatchEgg'
@@ -38,7 +38,7 @@ module.exports.app = (appExports, model) ->
 #    user.remove 'items.hatchingPotions', hatchingPotionIdx, 1
 #    user.remove 'items.eggs', eggIdx, 1
 
-  appExports.choosePet = (e, el, next) ->
+  app.fn 'choosePet', (e, el, next) ->
     petStr = $(el).attr('data-pet')
 
     return next() if user.get('items.pets').indexOf(petStr) == -1
@@ -51,7 +51,7 @@ module.exports.app = (appExports, model) ->
     pet.str = petStr
     user.set 'items.currentPet', pet
 
-  appExports.buyHatchingPotion = (e, el) ->
+  app.fn 'buyHatchingPotion', (e, el) ->
     name = $(el).attr 'data-hatchingPotion'
     newHatchingPotion = _.find hatchingPotions, {name: name}
     gems = user.get('balance') * 4
@@ -62,7 +62,7 @@ module.exports.app = (appExports, model) ->
     else
       $('#more-gems-modal').modal 'show'
 
-  appExports.buyEgg = (e, el) ->
+  app.fn 'buyEgg', (e, el) ->
     name = $(el).attr 'data-egg'
     newEgg = _.find pets, {name: name}
     gems = user.get('balance') * 4

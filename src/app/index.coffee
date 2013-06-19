@@ -121,20 +121,20 @@ app.ready (model) ->
     type: "guild"
 
   browser = require './browser.coffee'
-  require('./tasks.coffee').app(exports, model)
-  require('./items.coffee').app(exports, model)
-  require('./groups.coffee').app(exports, model, app)
-  require('./profile.coffee').app(exports, model)
-  require('./pets.coffee').app(exports, model)
-  require('../server/private.coffee').app(exports, model)
-  require('./debug.coffee').app(exports, model) if model.flags.nodeEnv != 'production'
-  browser.app(exports, model, app)
-  require('./unlock.coffee').app(exports, model)
-  require('./filters.coffee').app(exports, model)
-  require('./challenges.coffee').app(exports, model)
+  require('./tasks.coffee').app(app, model)
+  require('./items.coffee').app(app, model)
+  require('./groups.coffee').app(app, model)
+  require('./profile.coffee').app(app, model)
+  require('./pets.coffee').app(app, model)
+  require('../server/private.coffee').app(app, model)
+  require('./debug.coffee').app(app, model) unless model.get('_session.flags.nodeEnv') is 'production'
+  browser.app(app, model)
+  require('./unlock.coffee').app(app, model)
+  require('./filters.coffee').app(app, model)
+  require('./challenges.coffee').app(app, model)
 
   # used for things like remove website, chat, etc
-  exports.removeAt = (e, el) ->
+  app.fn 'removeAt', (e, el) ->
     if (confirmMessage = $(el).attr 'data-confirm')?
       return unless confirm(confirmMessage) is true
     e.at().remove()

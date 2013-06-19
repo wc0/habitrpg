@@ -11,10 +11,10 @@ module.exports.server = (model) ->
 ###
   app exports
 ###
-module.exports.app = (appExports, model) ->
+module.exports.app = (app, model) ->
   user = model.at '_session.user'
 
-  appExports.buyItem = (e, el) ->
+  app.fn 'buyItem', (e, el) ->
     [type, value, index] = [ $(el).attr('data-type'), $(el).attr('data-value'), $(el).attr('data-index') ]
     if changes = items.buyItem(user.get(), type, value, index)
       _.each changes, (v,k) -> user.set k,v; true

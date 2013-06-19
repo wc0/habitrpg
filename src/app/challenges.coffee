@@ -3,7 +3,7 @@ _ = require 'lodash'
 async = require 'async'
 misc = require './misc.coffee'
 
-module.exports.app = (appExports, model) ->
+module.exports.app = (app, model) ->
   browser = require './browser.coffee'
   user = model.at '_session.user'
 
@@ -64,7 +64,7 @@ module.exports.app = (appExports, model) ->
               chart.draw(data, options)
 
 
-  appExports.challengeCreate = (e,el) ->
+  app.fn 'challengeCreate', (e,el) ->
     [type, gid] = [$(el).attr('data-type'), $(el).attr('data-gid')]
     cid = model.id()
     model.set '_page.new.challenge',
@@ -84,7 +84,7 @@ module.exports.app = (appExports, model) ->
     _.each ['habits','dailys','todos','rewards'], (type) ->
       model.refList "_page.lists.tasks.#{cid}.#{type}", "_page.new.challenge.tasks", "_page.new.challenge.ids.#{type}"
 
-  appExports.challengeSave = ->
+  app.fn 'challengeSave', ->
     newChal = model.get('_page.new.challenge')
     [gid, cid] = [newChal.group.id, newChal.id]
     model.push "_page.lists.challenges.#{gid}", newChal, ->
@@ -94,23 +94,23 @@ module.exports.app = (appExports, model) ->
       browser.growlNotification('Challenge Created','success')
       challengeDiscard()
 
-  appExports.toggleChallengeEdit = (e, el) ->
+  app.fn 'toggleChallengeEdit', (e, el) ->
     path = "_page.editing.challenges.#{$(el).attr('data-id')}"
     model.set path, !model.get(path)
 
-  appExports.challengeDiscard = challengeDiscard = -> model.del '_page.new.challenge'
+  challengeDiscard = -> model.del '_page.new.challenge'
+  app.fn 'challengeDiscard', challengeDiscard
 
-  appExports.challengeDelete = (e) ->
+  app.fn 'challengeDelete', (e) ->
     return unless confirm("Delete challenge, are you sure?") is true
     chal = e.get()
     path = "groups.#{chal.group.id}.ids.challenges"
-    debugger
     if (i = model.get(path).indexOf chal.id) != -1
       ids = model.get(path); ids.splice(i, 1)
       model.set path, ids
       e.at().del()
 
-  appExports.challengeSubscribe = (e) ->
+  app.fn 'challengeSubscribe', (e) ->
     chal = e.get()
     # Add all challenge's tasks to user's tasks
     userChallenges = user.get('challenges')
@@ -120,7 +120,7 @@ module.exports.app = (appExports, model) ->
       name: helpers.username(user.get('auth'), user.get('profile.name'))
     syncChalToUser(chal)
 
-  appExports.challengeUnsubscribe = (e, el) ->
+  app.fn 'challengeUnsubscribe', (e, el) ->
     $(el).popover('destroy').popover({
       html: true
       placement: 'top'

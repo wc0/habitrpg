@@ -3,10 +3,10 @@ browser = require './browser.coffee'
 misc = require './misc.coffee'
 _ = require 'lodash'
 
-module.exports.app = (appExports, model) ->
+module.exports.app = (app, model) ->
   user = model.at('_session.user')
 
-  appExports.revive = ->
+  app.fn 'revive', ->
     # Reset stats
     user.set 'stats.hp', 50
     user.set 'stats.exp', 0
@@ -27,7 +27,7 @@ module.exports.app = (appExports, model) ->
 
     items.updateStore(model)
 
-  appExports.reset = (e, el) ->
+  app.fn 'reset', (e, el) ->
     misc.batchTxn model, (uObj, paths, batch) ->
       batch.set 'tasks', {}
       ['habit', 'daily', 'todo', 'reward'].forEach (type) -> batch.set("#{type}Ids", [])
@@ -36,41 +36,41 @@ module.exports.app = (appExports, model) ->
     items.updateStore(model)
     browser.resetDom(model)
 
-  appExports.closeNewStuff = (e, el) ->
+  app.fn 'closeNewStuff', (e, el) ->
     user.set('flags.newStuff', 'hide')
 
-  appExports.customizeGender = (e, el) ->
+  app.fn 'customizeGender', (e, el) ->
     user.set 'preferences.gender', $(el).attr('data-value')
 
-  appExports.customizeHair = (e, el) ->
+  app.fn 'customizeHair', (e, el) ->
     user.set 'preferences.hair', $(el).attr('data-value')
 
-  appExports.customizeSkin = (e, el) ->
+  app.fn 'customizeSkin', (e, el) ->
     user.set 'preferences.skin', $(el).attr('data-value')
 
-  appExports.customizeArmorSet = (e, el) ->
+  app.fn 'customizeArmorSet', (e, el) ->
     user.set 'preferences.armorSet', $(el).attr('data-value')
 
-  appExports.restoreSave = ->
+  app.fn 'restoreSave', ->
     misc.batchTxn model, (uObj, paths, batch) ->
       $('#restore-form input').each ->
         [path, val] = [$(this).attr('data-for'), parseInt($(this).val() || 1)]
         batch.set(path,val)
 
-  appExports.toggleHeader = (e, el) ->
+  app.fn 'toggleHeader', (e, el) ->
     user.set 'preferences.hideHeader', !user.get('preferences.hideHeader')
 
-  appExports.deleteAccount = (e, el) ->
+  app.fn 'deleteAccount', (e, el) ->
     model.del "users.#{user.get('id')}", ->
       location.href = "/logout"
 
-  appExports.profileAddWebsite = (e, el) ->
+  app.fn 'profileAddWebsite', (e, el) ->
     newWebsite = model.get('_page.new.profileWebsite')
     return if /^(\s)*$/.test(newWebsite)
     user.unshift 'profile.websites', newWebsite
     model.set '_page.new.profileWebsite', ''
 
-  appExports.profileRemoveWebsite = (e, el) ->
+  app.fn 'profileRemoveWebsite', (e, el) ->
     sites = user.get 'profile.websites'
     i = sites.indexOf $(el).attr('data-website')
     sites.splice(i,1)
@@ -81,15 +81,15 @@ module.exports.app = (appExports, model) ->
     model.set '_page.active.gamePane', !model.get('_page.active.gamePane'), ->
       browser.setupTooltips()
 
-  appExports.clickAvatar = (e, el) ->
+  app.fn 'clickAvatar', (e, el) ->
     uid = $(el).attr('data-uid')
     if uid is model.get('_session.userId') # clicked self
       toggleGamePane()
     else
       $("#avatar-modal-#{uid}").modal('show')
 
-  appExports.toggleGamePane = -> toggleGamePane()
+  app.fn 'toggleGamePane', -> toggleGamePane()
 
-  appExports.toggleResting = ->
+  app.fn 'toggleResting', ->
     model.set '_session.user.flags.rest', !model.get('_session.user.flags.rest')
 

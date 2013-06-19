@@ -1,25 +1,25 @@
 _ = require 'lodash'
 
-module.exports.app = (appExports, model) ->
+module.exports.app = (app, model) ->
   user = model.at('_session.user')
 
-  appExports.toggleFilterByTag = (e, el) ->
+  app.fn 'toggleFilterByTag', (e, el) ->
     tagId = $(el).attr('data-tag-id')
     path = 'filters.' + tagId
     user.set path, !(user.get path)
 
-  appExports.filtersNewTag = ->
+  app.fn 'filtersNewTag', ->
     user.setNull 'tags', []
     user.push 'tags', {id: model.id(), name: model.get("_page.new.tag")}
     model.set '_page.new.tag', ''
 
-  appExports.toggleEditingTags = ->
+  app.fn 'toggleEditingTags', ->
     model.set '_page.editing.tags', !model.get('_page.editing.tags')
 
-  appExports.clearFilters = ->
+  app.fn 'clearFilters', ->
     user.set 'filters', {}
 
-  appExports.filtersDeleteTag = (e, el) ->
+  app.fn 'filtersDeleteTag', (e, el) ->
     tags = user.get('tags')
     tag = e.at "_session.user.tags." + $(el).attr('data-index')
     tagId = tag.get('id')

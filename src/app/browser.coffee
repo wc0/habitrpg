@@ -187,7 +187,7 @@ googleCharts = ->
     # Specifying callback in options param is vital! Otherwise you get blank screen, see http://stackoverflow.com/a/12200566/362790
     google.load "visualization", "1", {packages:["corechart"], callback: ->}
 
-module.exports.app = (appExports, model, app) ->
+module.exports.app = (app, model) ->
   setupGrowlNotifications(model) unless model.get('_session.flags.isMobile')
 
   app.on 'render', (ctx) ->
