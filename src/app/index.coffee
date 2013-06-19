@@ -111,14 +111,6 @@ app.get '/', (page, model, params, next) ->
 app.ready (model) ->
   user = model.at('_session.user')
 
-  #FIXME this should only be called once, on initial empty database
-  model.setNull "groups.habitrpg",
-    chat: []
-    id: "habitrpg"
-    leader: "9"
-    name: "HabitRPG"
-    type: "guild"
-
   browser = require './browser.coffee'
   require('./tasks.coffee').app(app, model)
   require('./items.coffee').app(app, model)
