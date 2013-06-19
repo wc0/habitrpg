@@ -46,7 +46,6 @@ store = derby.createStore(
 )
 
 store.on 'bundle', (browserify) ->
-  console.log @_events.client
   vendorScripts = [
     "jquery-ui-1.10.2/jquery-1.9.1"
     "jquery.cookie.min"
@@ -86,10 +85,10 @@ require('./store')(store) # setup our own accessControl
 
 expressApp
   .use(middleware.allowCrossDomain)
-  .use(express.favicon()) # Gzip dynamically
-  .use(express.compress()) # Respond to requests for application script bundles
-  .use(app.scripts(store)) # Serve static files from the public directory
-  .use(express['static'](publicDir))
+  .use(express.favicon())
+  .use(express.compress()) # Gzip dynamically
+  .use(app.scripts(store)) # Respond to requests for application script bundles
+  .use(express['static'](publicDir)) # Serve static files from the public directory
 
 # Session middleware
   .use(express.cookieParser())
@@ -101,6 +100,10 @@ expressApp
     )
   ))
 
+# Parse form data
+  .use(express.bodyParser())
+  .use(express.methodOverride())
+
 #.use(everyauth.middleware(autoSetupRoutes: false))
 
 # Add browserchannel client-side scripts to model bundles created by store,
@@ -108,6 +111,9 @@ expressApp
   .use(racerBrowserChannel(store))
 # Add req.getModel() method
   .use(store.modelMiddleware())
+
+# Authentication
+  .use(auth.middleware(strategies, options))
 
 # Custom Translations
   .use(middleware.translate)
@@ -121,13 +127,6 @@ expressApp
   .use(middleware.splash) # Show splash page for newcomers
   .use(priv.middleware)
   .use(middleware.view)
-  .use(auth.middleware(strategies, options))
-
-# Parse form data
-  .use(express.bodyParser())
-  .use(express.methodOverride())
-
-#.use(rememberUser)
 
 # Create an express middleware from the app's routes
   .use(app.router())
