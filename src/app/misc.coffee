@@ -4,7 +4,7 @@ _ = require 'lodash'
 
 module.exports.batchTxn = batchTxn = (model, cb, options) ->
   user = model.at("_session.user")
-  uObj = hydrate(user.get()) # see https://github.com/codeparty/racer/issues/116
+  uObj = user.get() #{hydrate(user.get()) # see https://github.com/codeparty/racer/issues/116
   batch =
     set: (k,v) -> helpers.dotSet(k,v,uObj); paths[k] = true
     get: (k) -> helpers.dotGet(k,uObj)
@@ -15,9 +15,9 @@ module.exports.batchTxn = batchTxn = (model, cb, options) ->
   model._dontPersist = false
   # some hackery in our own branched racer-db-mongo, see findAndModify of lefnire/racer-db-mongo#habitrpg index.js
   # pass true if we have levelled to supress xp notification
-  unless _.isEmpty paths
-    setOps = _.reduce paths, ((m,v,k)-> m[k] = helpers.dotGet(k,uObj);m), {}
-    user.set "update__", setOps, options?.done
+#  unless _.isEmpty paths
+#    setOps = _.reduce paths, ((m,v,k)-> m[k] = helpers.dotGet(k,uObj);m), {}
+#    user.set "update__", setOps, options?.done
   ret
 
 #TODO put this in habitrpg-shared
