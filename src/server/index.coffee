@@ -7,7 +7,7 @@ MongoStore = require('connect-mongo')(express)
 app = require('../app')
 error = require('./serverError')
 mongoskin = require('mongoskin')
-publicDir = __dirname + "/../../public"
+publicDir = require('path').join __dirname + '/../../public'
 
 auth = require 'derby-auth'
 priv = require './private.coffee'
@@ -55,14 +55,14 @@ store.on 'bundle', (browserify) ->
     "bootstrap-tour/bootstrap-tour"
   ]
   # FIXME check if mobile
-  vendorScripts.concat [
+  vendorScripts = vendorScripts.concat [
     "jquery-ui-1.10.2/ui/jquery.ui.core"
     "jquery-ui-1.10.2/ui/jquery.ui.widget"
     "jquery-ui-1.10.2/ui/jquery.ui.mouse"
     "jquery-ui-1.10.2/ui/jquery.ui.sortable"
     "sticky"
   ]
-  vendorScripts.forEach (s) -> browserify.add "#{publicDir}/vendor/#{s}"
+  vendorScripts.forEach (s) -> browserify.add "#{publicDir}/vendor/#{s}.js"
   # Add support for directly requiring coffeescript in browserify bundles
   browserify.transform coffeeify
 
