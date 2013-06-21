@@ -8,7 +8,7 @@
         <ul class="nav nav-tabs game-tabs">
             <li class="active"><a data-toggle='tab' data-target="#profile-customize"><i class='icon-user'></i> Profile</a></li>
             <li><a data-toggle='tab' data-target="#profile-groups" id='party-tab-link'><i class='icon-heart'></i> Groups</a></li>
-            {#if _session.user.flags.dropsEnabled}
+            {#if _page.user.priv.flags.dropsEnabled}
                 <li><a data-toggle='tab' data-target="#profile-inventory"><i class='icon-gift'></i> Inventory</a></li>
                 <li><a data-toggle='tab' data-target="#profile-stable"><i class='icon-leaf'></i> Stable</a></li>
             {/if}
@@ -26,7 +26,7 @@
                         <app:avatar:customize />
                     </div>
                     <div class='span4  border-right'>
-                        <app:avatar:profile-stats profile={_session.user} />
+                        <app:avatar:profile-stats profile={_page.user.pub} />
                     </div>
                     <div class='span4'>
                         <app:avatar:profile-edit />
@@ -39,7 +39,7 @@
             </div>
 
             <div class="tab-pane" id="profile-achievements">
-                <app:avatar:achievements profile="{{_session.user}}" />
+                <app:avatar:achievements profile="{{_page.user.pub}}" />
             </div>
 
             <div class="tab-pane" id="profile-inventory">

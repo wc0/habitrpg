@@ -1,9 +1,10 @@
 _ = require 'lodash'
-misc = require "../app/misc.coffee"
+u = require "../app/user.coffee"
 
 module.exports.middleware = (req, res, next) ->
+  nconf = require 'nconf'
   model = req.getModel()
-  model.set '_session.stripePubKey', process.env.STRIPE_PUB_KEY
+  model.set '_session.stripePubKey', nconf.get('STRIPE_PUB_KEY')
   return next()
 
 module.exports.app = (app, model) ->
@@ -34,14 +35,17 @@ module.exports.app = (app, model) ->
     Buy Reroll Button
   ###
   app.fn 'buyReroll', ->
-    misc.batchTxn model, (uObj, paths, batch) ->
-      uObj.balance -= 1; paths['balance'] =1
-      _.each uObj.tasks, (task) ->
-        batch.set("tasks.#{task.id}.value", 0) unless task.type is 'reward'
-        true
-    $('#reroll-modal').modal('hide')
+    ats = u.userAts(model)
+    uobj = ats.priv.get()
+    uobj.balance--
+    _.each uobj.tasks, (task) ->
+      task.value = 0 unless task.type is 'reward'
+      true
+    model.setDiff ats.priv.path(), uobj
+  $('#reroll-modal').modal('hide')
 
 module.exports.routes = (expressApp) ->
+  nconf = require 'nconf'
   ###
     Setup Stripe response when posting payment
   ###
@@ -60,7 +64,7 @@ module.exports.routes = (expressApp) ->
           model.set('_session.user.flags.ads','hide')
           return res.send(200)
 
-    api_key = process.env.STRIPE_API_KEY # secret stripe API key
+    api_key = nconf.get('STRIPE_API_KEY') # secret stripe API key
     stripe = require("stripe")(api_key)
     token = req.body.id
     # console.dir {token:token, req:req}, 'stripe'

@@ -2,13 +2,14 @@ _ = require 'lodash'
 {helpers, items} = require 'habitrpg-shared'
 { randomVal } = helpers
 { pets, hatchingPotions } = items.items
+u = require ('./user.coffee')
 
 ###
   Listeners to enabled flags, set notifications to the user when they've unlocked features
 ###
 
 module.exports.app = (app, model) ->
-  user = model.at('_session.user')
+  user = u.userAts(model)
 
   alreadyShown = (before, after) -> !(!before and after is true)
 
@@ -24,13 +25,13 @@ module.exports.app = (app, model) ->
     }).popover 'show'
 
 
-  user.on 'change', 'flags.customizationsNotification', (after, before) ->
+  user.priv.on 'change', 'flags.customizationsNotification', (after, before) ->
     return if alreadyShown(before,after)
     $('.main-herobox').popover('destroy') #remove previous popovers
     html = "Click your avatar to customize your appearance."
     showPopover '.main-herobox', 'Customize Your Avatar', html, 'bottom'
 
-  user.on 'change', 'flags.itemsEnabled', (after, before) ->
+  user.priv.on 'change', 'flags.itemsEnabled', (after, before) ->
     return if alreadyShown(before,after)
     html = """
            <img src='/vendor/BrowserQuest/client/img/1/chest.png' />
@@ -38,7 +39,7 @@ module.exports.app = (app, model) ->
            """
     showPopover 'div.rewards', 'Item Store Unlocked', html, 'left'
 
-  user.on 'change', 'flags.petsEnabled', (after, before) ->
+  user.priv.on 'change', 'flags.petsEnabled', (after, before) ->
     return if alreadyShown(before,after)
     html = """
            <img src='/img/sprites/wolf_border.png' style='width:30px;height:30px;float:left;padding-right:5px' />
@@ -46,51 +47,41 @@ module.exports.app = (app, model) ->
            """
     showPopover '#rewardsTabs', 'Pets Unlocked', html, 'left'
 
-  user.on 'change', 'flags.partyEnabled', (after, before) ->
-    return if user.get('party.current') or alreadyShown(before,after)
+  user.priv.on 'change', 'flags.partyEnabled', (after, before) ->
+    return if alreadyShown(before,after)
     html = """
            Be social, join a party and play Habit with your friends! You'll be better at your habits with accountability partners. Click User -> Options -> Party, and follow the instructions. LFG anyone?
            """
     showPopover '.user-menu', 'Party System', html, 'bottom'
 
-  user.on 'change', 'flags.dropsEnabled', (after, before) ->
+  user.priv.on 'change', 'flags.dropsEnabled', (after, before) ->
     return if alreadyShown(before,after)
-
     egg = randomVal pets
-
-    dontPersist =  model._dontPersist
-
-    model._dontPersist = false
-    user.push 'items.eggs', egg
-    model._dontPersist = dontPersist
+    user.pub.push 'items.eggs', egg
 
     $('#drops-enabled-modal').modal 'show'
 
-  user.on 'insert', 'items.pets', (after, before) ->
-    return if user.get('achievements.beastMaster')
+  user.pub.on 'insert', 'items.pets', (after, before) ->
+    return if user.pub.get('achievements.beastMaster')
     if before >= 90 # evidently before is the count?
-      dontPersist =  model._dontPersist; model._dontPersist = false
-      user.set 'achievements.beastMaster', true, (-> model._dontPersist = dontPersist)
+      user.pub.set 'achievements.beastMaster', true
       $('#beastmaster-achievement-modal').modal('show')
 
-  user.on 'change', 'items.*', (after, before) ->
-    return if user.get('achievements.ultimateGear')
-    items = user.get('items')
+  user.pub.on 'change', 'items.*', (after, before) ->
+    return if user.pub.get('achievements.ultimateGear')
+    items = user.pub.get('items')
     if parseInt(items.weapon) >= 6 and parseInt(items.armor) >= 5 and parseInt(items.head) >= 5 and parseInt(items.shield) >= 5
-      [dontPersist, model._dontPersist] =  [model._dontPersist; false]
-      user.set 'achievements.ultimateGear', true, ->model._dontPersist = dontPersist
+      user.pub.set 'achievements.ultimateGear', true
       $('#max-gear-achievement-modal').modal('show')
 
-  user.on 'change', 'tasks.*.streak', (id, after, before) ->
+  user.priv.on 'change', 'tasks.*.streak', (id, after, before) ->
     if after > 0
 
       # 21-day streak, as per the old philosophy of doign a thing 21-days in a row makes a habit
       if (after % 21) is 0
-        dontPersist =  model._dontPersist; model._dontPersist = false
-        user.incr 'achievements.streak', 1, (-> model._dontPersist = dontPersist)
+        user.pub.incr 'achievements.streak', 1
         $('#streak-achievement-modal').modal('show')
 
       # they're undoing a task at the 21 mark, take back their badge
       else if (before - after is 1) and (before % 21 is 0)
-        dontPersist =  model._dontPersist; model._dontPersist = false
-        user.incr 'achievements.streak', -1, (-> model._dontPersist = dontPersist)
+        user.pub.incr 'achievements.streak', -1

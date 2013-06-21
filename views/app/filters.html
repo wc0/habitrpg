@@ -7,7 +7,7 @@
       <li>
           <a rel=tooltip title='Edit Tags' x-bind="click:toggleEditingTags"><i class='{#if _page.editing.tags}icon-ok{else}icon-pencil{/}'></i></a>
       </li>
-      {#each _session.user.tags as :tag}
+      {#each _page.user.priv.tags as :tag}
         <li class="{#if users[_session.userId].filters[:tag.id]}active{/}" style='position:relative;'>
             {#if and(_page.editing.tags,not(:tag.challenge))}
                 <div class="input-append option-group tag-editing" >

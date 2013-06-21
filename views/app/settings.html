@@ -4,7 +4,7 @@
             <h2>Settings</h2>
             <h4>Custom Day Start</h4>
             <div class="option-group option-short">
-                <input class="option-content option-time" type="number" min=0 max=24 value={_session.user.preferences.dayStart}>
+                <input class="option-content option-time" type="number" min=0 max=24 value={_page.user.pub.preferences.dayStart}>
                 <span class="input-suffix">:00 (24h clock)</span>
             </div>
             <div>
@@ -13,9 +13,9 @@
 
             <hr/>
             <h4>Misc</h4>
-            <button x-bind="click:toggleHeader" class="btn">{#if _session.user.preferences.hideHeader}Show Header{else}Hide Header{/}</button>
+            <button x-bind="click:toggleHeader" class="btn">{#if _page.user.pub.preferences.hideHeader}Show Header{else}Hide Header{/}</button>
 
-            {{#if _session.user.auth.local}}
+            {{#if _page.auth.local}}
             <hr/>
             <h4>Change Password</h4>
             <derby-auth:changePassword />
@@ -31,14 +31,14 @@
             <h2>API</h2>
             <small>Copy these for use in third party applications.</small>
             <h6>User ID</h6>
-            <pre class=prettyprint>{_session.user.id}</pre>
+            <pre class=prettyprint>{_session.userId}</pre>
 
             <h6>API Token</h6>
-            <pre class=prettyprint>{_session.user.apiToken}</pre>
+            <pre class=prettyprint>{_page.user.priv.apiToken}</pre>
 			
 			<h6>QR Code</h6>
 			<img src='https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=
-			%7Baddress%3A%22https%3A%2F%2Fhabitrpg.com%22%2Cuser%3A%22{{_session.user.id}}%22%2Ckey%3A%22{{_session.user.apiToken}}%22%7D,&choe=UTF-8&chld=L' alt="qrcode"/>
+			%7Baddress%3A%22https%3A%2F%2Fhabitrpg.com%22%2Cuser%3A%22{{_session.userId}}%22%2Ckey%3A%22{{_page.user.priv.apiToken}}%22%7D,&choe=UTF-8&chld=L' alt="qrcode"/>
 			
         </div>
     </div>
@@ -57,7 +57,7 @@
         <app:modals:modal modalId="restore-modal" header="Restore">
             <p>HabitRPG is quite Beta-quality at present, and many find they need to restore character attributes as a result. Enter your numbers here and it will be applied automatically to your character. This will be removed once Habit is more stable.</p>
 
-            {#with _session.user}
+            {#with _page.user.pub}
             <form id='restore-form' class="form-horizontal restore-options">
                 <h3>Stats</h3>
                 <div class="option-group option-medium">
@@ -136,7 +136,7 @@
         {{else}}
             <ul class="nav site-nav">
                 <li class="flyout">
-                    <h1 class="task-action-btn tile solid user-reporter">{{username(_session.user.auth, _session.user.profile.name)}}</h1>
+                    <h1 class="task-action-btn tile solid user-reporter">{{username(_page.user.pub.profile.name)}}</h1>
                     <ul class="flyout-content nav stacked">
                         <li>
                             <a class="task-action-btn tile solid" x-bind='click:toggleGamePane'>
@@ -150,12 +150,12 @@
         {{/}}
 
         <!-- party invitation notification -->
-        {#if _session.user.party.invitation}
+        {#if _page.user.pub.invitations.party}
             <a style='cursor:pointer;' x-bind="click:gotoPartyChat"><i class='icon-user'></i></a>
         {/}
 
         <!-- party chat notification -->
-        {#if newChatMessages(_page.party.chat,_session.user.party.lastMessageSeen)}
+        {#if newChatMessages(_page.party.chat,_page.user.priv.party.lastMessageSeen)}
             <a style='cursor:pointer;' x-bind="click:gotoPartyChat"><i class='icon-comment' rel='tooltip' title='New Party Messages'></i></a>
         {/}
 

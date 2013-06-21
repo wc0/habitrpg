@@ -6,7 +6,7 @@ _ = require 'lodash'
 validator = require 'derby-auth/node_modules/validator'
 check = validator.check
 sanitize = validator.sanitize
-misc = require '../app/misc.coffee'
+tasks = require '../app/tasks.coffee'
 
 NO_TOKEN_OR_UID = err: "You must include a token and uid (user id) in your request"
 NO_USER_FOUND = err: "No user found."
@@ -84,6 +84,7 @@ router.put '/user', auth, (req, res) ->
   user.set 'lastCron', partialUser.lastCron if partialUser.lastCron?
   _.each acceptableAttrs, (attr) ->
     _.each partialUser[attr], (val, key) -> user.set("#{attr}.#{key}", val);true
+    true
 
   updateTasks partialUser.tasks, req.user, req.getModel() if partialUser.tasks?
 
@@ -254,7 +255,7 @@ scoreTask = (req, res, next) ->
     model.at("_page.#{type}List").push task
 
   #FIXME
-  delta = misc.score(model, taskId, direction)
+  delta = tasks.score(model, taskId, direction)
   result = model.get '_session.user.stats'
   result.delta = delta
   res.json result

@@ -77,8 +77,8 @@
                 <li>
                     <!-- subscribe / unsubscribe -->
                     {#with @challenge}
-                    <a x-bind="click:challengeUnsubscribe" class='btn btn-small btn-danger {#unless indexOf(_session.user.challenges,@challenge.id)}hidden{/}'><i class='icon-ban-circle'></i> Unsubscribe</a>
-                    <a x-bind="click:challengeSubscribe" class='btn btn-small btn-success {#if indexOf(_session.user.challenges,@challenge.id)}hidden{/}'><i class='icon-ok'></i> Subscribe</a>
+                    <a x-bind="click:challengeUnsubscribe" class='btn btn-small btn-danger {#unless indexOf(_page.user.priv.challenges,@challenge.id)}hidden{/}'><i class='icon-ban-circle'></i> Unsubscribe</a>
+                    <a x-bind="click:challengeSubscribe" class='btn btn-small btn-success {#if indexOf(_page.user.priv.challenges,@challenge.id)}hidden{/}'><i class='icon-ok'></i> Subscribe</a>
                     {/}
                 </li>
             </ul>
@@ -94,7 +94,7 @@
 
                 <!-- Edit button -->
                 <span style='position:absolute; right:0;'>
-                {#if and(not(_page.editing.challenges[@challenge.id]),equal(@challenge.user.uid,_session.user.id))}
+                {#if and(not(_page.editing.challenges[@challenge.id]),equal(@challenge.user.uid,_session.userId))}
                     <ul class='nav nav-pills'><li>
                         <a x-bind='click:toggleChallengeEdit' data-id={{@challenge.id}} ><i class=icon-pencil></i></a>
                     </li></ul>
@@ -196,7 +196,7 @@
                             <div>
                                 <select multiple="multiple">
                                 {{#each _page.party.members as :memberId}}
-                                    <option>{{username(_page.members[:memberId].auth,_page.members[:memberId].profile.name)}}</option>
+                                    <option>{{username(_page.members[:memberId].profile.name)}}</option>
                                 {{/}}
                                 </select>
                             </div>

@@ -1,23 +1,23 @@
 <header:>
-    <header class="site-header {#if _session.user.preferences.hideHeader}hidden{/}" role="banner" data-partySize="{#if gt(_page.party.memebers.length,1)}{truarr(_page.party.members.length)}{else}0{/}">
+    <header class="site-header {#if _page.user.pub.preferences.hideHeader}hidden{/}" role="banner" data-partySize="{#if gt(_page.party.memebers.length,1)}{truarr(_page.party.members.length)}{else}0{/}">
         <!-- avatar -->
         <div class="herobox-wrap main-herobox">
-            <app:avatar:avatar profile={_session.user} main=true>
+            <app:avatar:avatar profile={_page.user.pub} main=true>
         </div>
 
         <!-- stat bars -->
         <div class="hero-stats">
             <div class="meter health" title="Health">
-                <div class="bar" style="width: {percent(_session.user.stats.hp, 50)}%;"></div>
-                <span class="meter-text"><i class=icon-heart></i> {floor(_session.user.stats.hp)} / 50</span>
+                <div class="bar" style="width: {percent(_page.user.pub.stats.hp, 50)}%;"></div>
+                <span class="meter-text"><i class=icon-heart></i> {floor(_page.user.pub.stats.hp)} / 50</span>
             </div>
 
             <div class="meter experience" title="Experience">
-                <div class="bar" style="width: {percent(_session.user.stats.exp,tnl(_session.user.stats.lvl))}%;"></div>
+                <div class="bar" style="width: {percent(_page.user.pub.stats.exp,tnl(_page.user.pub.stats.lvl))}%;"></div>
                 <span class="meter-text">
-                  <i class=icon-star></i> {floor(_session.user.stats.exp)} / {tnl(_session.user.stats.lvl)}
+                  <i class=icon-star></i> {floor(_page.user.pub.stats.exp)} / {tnl(_page.user.pub.stats.lvl)}
                   <!-- FIXME doesn't look great here, but the "Experience" CSS title rollover covers it where it was before -->
-                  {{#if _session.user.history.exp}}
+                  {{#if _page.user.priv.history.exp}}
                     &nbsp;<a x-bind=click:toggleChart data-id="exp" rel=tooltip title="Progress"><i class=icon-signal></i></a>
                   {{/}}
                 </span>

@@ -100,7 +100,7 @@
     </app:modals:modal>
 
 <hiding-bailey:>
-    {#if equal(_session.user.flags.newStuff,'show')}
+    {#if equal(_page.user.priv.flags.newStuff,'show')}
         <div class='NPC-Bailey-Head'
              rel=tooltip title=Psst data-placement=top
              data-toggle=modal data-target='#new-stuff-modal'

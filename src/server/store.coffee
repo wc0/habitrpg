@@ -13,8 +13,9 @@ module.exports = (store) ->
 
   protectRead = (shareRequest, next) ->
     return next() if shareRequest.collection isnt "users"
-    return next() if shareRequest.docName is shareRequest.agent.connectSession.userId  if shareRequest.agent.connectSession
-    next new Error("Not allowed to fetch users who are not you.")
+    return next() if shareRequest.docName is shareRequest.agent.connectSession.userId
+    if shareRequest.agent.connectSession
+      next new Error("Not allowed to fetch users who are not you.")
 
   ###
   Only allow users to modify or delete themselves. Only allow the server to

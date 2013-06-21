@@ -1,11 +1,11 @@
 _ = require 'lodash'
 {helpers} = require 'habitrpg-shared'
 async = require 'async'
-misc = require './misc.coffee'
+u = require './user.coffee'
 
 module.exports.app = (app, model) ->
   browser = require './browser.coffee'
-  user = model.at '_session.user'
+  user = u.userAts(model)
 
   ###
     Add challenge name as a tag for user
@@ -30,7 +30,7 @@ module.exports.app = (app, model) ->
           batch.set path, _.defaults(task, batch.get path)
         else
           batch.set path, task
-          batch.set "#{task.type}Ids", batch.get("#{task.type}Ids").concat(task.id)
+          batch.set "#{task.type}Ids", batch.get("ids.#{task.type}s").concat(task.id)
         true
 
   ###
@@ -38,8 +38,9 @@ module.exports.app = (app, model) ->
     challenge->user sync. user->challenge happens when user interacts with their taskss
   ###
   _.each model.get('groups'), (g) ->
-    if (user.get('id') in g.members) and g.challenges
+    if (user.id in g.members) and g.challenges
       _.each g.challenges, syncChalToUser
+    true
 
   ###
     Render graphs for user scores when the "Challenges" tab is clicked
@@ -77,12 +78,13 @@ module.exports.app = (app, model) ->
         todos: []
         rewards: []
       user:
-        uid: user.get('id')
-        name: helpers.username(model.get('_session.user.auth'), model.get('_session.user.profile.name'))
+        uid: user.id
+        name: helpers.username user.priv.get('auth'), user.pub.get('profile.name')
       group: {type, id:gid}
       timestamp: +new Date
     _.each ['habits','dailys','todos','rewards'], (type) ->
       model.refList "_page.lists.tasks.#{cid}.#{type}", "_page.new.challenge.tasks", "_page.new.challenge.ids.#{type}"
+      true
 
   app.fn 'challengeSave', ->
     newChal = model.get('_page.new.challenge')
@@ -91,6 +93,7 @@ module.exports.app = (app, model) ->
       _.each ['habits','dailys','todos','rewards'], (type) ->
         model.del "_page.lists.tasks.#{cid}.#{type}" #remove old refList
         model.refList "_page.lists.tasks.#{cid}.#{type}", "groups.#{gid}.challenges.#{cid}.tasks", "groups.#{gid}.challenges.#{cid}.ids.#{type}"
+        true
       browser.growlNotification('Challenge Created','success')
       challengeDiscard()
 
@@ -113,11 +116,11 @@ module.exports.app = (app, model) ->
   app.fn 'challengeSubscribe', (e) ->
     chal = e.get()
     # Add all challenge's tasks to user's tasks
-    userChallenges = user.get('challenges')
-    user.unshift('challenges', chal.id) unless userChallenges and (userChallenges.indexOf(chal.id) != -1)
+    userChallenges = user.priv.get('challenges')
+    user.priv.unshift('challenges', chal.id) unless userChallenges and (userChallenges.indexOf(chal.id) != -1)
     e.at().set "users", (chal.users || []).concat
-      id: user.get('id')
-      name: helpers.username(user.get('auth'), user.get('profile.name'))
+      id: user.id
+      name: helpers.username(user.priv.get('auth'), user.pub.get('profile.name'))
     syncChalToUser(chal)
 
   app.fn 'challengeUnsubscribe', (e, el) ->
@@ -134,21 +137,20 @@ module.exports.app = (app, model) ->
     }).popover('show')
 
     unsubscribe = (remove = false) ->
-      uid = user.get('id')
       chal = e.get()
-      i = user.get('challenges')?.indexOf chal.id
-      user.remove("challenges.#{i}") if i? and i != -1
-      if (i = _.findIndex chal.users, {id:user.get('id')}) != -1
+      i = user.priv.get('challenges')?.indexOf chal.id
+      user.priv.remove("challenges.#{i}") if i? and i != -1
+      if (i = _.findIndex chal.users, {id: user.id}) != -1
         chal.users.splice(i,1)
         e.at().set 'users', chal.users
       async.each _.toArray(chal.tasks), (task) ->
         if remove is true
-          if (i = _.findIndex(user.get("#{task.type}Ids",{id:task.id}))) != -1
-            ids = user.get("#{task.type}Ids"); ids.splice(i,1)
-            user.set "#{task.type}Ids", ids
-            user.del "tasks.#{task.id}"
+          if (i = _.findIndex(user.priv.get("ids.#{task.type}s",{id:task.id}))) != -1
+            ids = user.priv.get("ids.#{task.type}s"); ids.splice(i,1)
+            user.priv.set "ids.#{task.type}s", ids
+            user.priv.del "tasks.#{task.id}"
         else
-          user.del "tasks.#{task.id}.challenge"
+          user.priv.del "tasks.#{task.id}.challenge"
         true
     $('.challenge-unsubscribe-and-remove').click -> unsubscribe(true)
     $('.challenge-unsubscribe-and-keep').click -> unsubscribe(false)

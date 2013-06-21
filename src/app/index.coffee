@@ -1,10 +1,11 @@
 app = require('derby').createApp module
+async = require 'async'
 
 # Include library components
 app
   .use(require('derby-ui-boot'), {styles: []})
   .use(require('../../ui'))
-  .use(require 'derby-auth/components')
+  .use(require 'derby-auth/components/index.coffee')
 
 # Translations
 i18n = require './i18n.coffee'
@@ -14,9 +15,7 @@ i18n.localize app,
   urlScheme: false
   checkHeader: true
 
-misc = require('./misc.coffee')
-misc.viewHelpers app.view
-
+require('./viewHelpers.coffee')(app.view)
 _ = require('lodash')
 {algos, helpers} = require 'habitrpg-shared'
 
@@ -29,7 +28,6 @@ setupSubscriptions = (page, model, params, next, cb) ->
   ###
   Queries
   ###
-  $self = model.at "users.#{uuid}"
   $publicGroups = model.query 'groups',
     privacy: 'public'
     type: 'guild'
@@ -43,17 +41,22 @@ setupSubscriptions = (page, model, params, next, cb) ->
 
     descriptors = []; paths = []
     finished = ->
-      # Add public "Tavern" guild in
-      descriptors.unshift(model.at 'groups.habitrpg'); paths.unshift('_page.tavern')
-      descriptors.unshift($self); paths.unshift('_session.user')
+      # Add in the thing's we'll subscribe to unconditionally. tavern, public/private self docs
+      descriptors.unshift(model.at 'groups.habitrpg');      paths.unshift('_page.tavern')
+      descriptors.unshift(model.at "usersPublic.#{uuid}");  paths.unshift('_page.user.pub')
+      descriptors.unshift(model.at "usersPrivate.#{uuid}"); paths.unshift('_page.user.priv')
+      descriptors.unshift(model.at "auths.#{uuid}");        paths.unshift('_page.auth')
 
       # Subscribe to each descriptor
       model.subscribe.apply model, descriptors.concat (err) ->
         return next(err) if err
-        _.each descriptors, ((d, i) -> model.ref paths[i], descriptors[i]; true)
-        unless model.get('_session.user')
+        _.each descriptors, (d, i) ->
+          if descriptors[i]._at? then model.ref paths[i], descriptors[i]
+          else descriptors[i].ref paths[i]
+          true
+        unless model.get('_page.user.pub')
           console.error "User not found - this shouldn't be happening!"
-          return page.redirect('/logout') #delete model.session.userId
+          return page.redirect('/logout') #delete req.session.userId
         return cb()
 
     # Get public groups first, order most-to-least # subscribers
@@ -74,13 +77,13 @@ setupSubscriptions = (page, model, params, next, cb) ->
     ), {guildIds:[], partyId:null, members:[]}
 
     # Fetch, not subscribe. There's nothing dynamic we need from members, just the the Group (below) which includes chat, challenges, etc
-    $members = model.query 'users',
+    $members = model.query 'usersPublic',
       _id: {$in: groupsInfo.members}
       #.only 'stats','items','invitations','profile','achievements','backer','preferences','auth.local.username','auth.facebook.displayName'
     $members.fetch (err) ->
       return next(err) if err
       # we need _page.members as an object in the view, so we can iterate over _page.party.members as :id, and access _page.members[:id] for the info
-      mObj = #members.get()
+      mObj = $members.get()
       model.set "_page.members", _.object(_.pluck(mObj,'id'), mObj)
       model.set "_page.membersArray", mObj
 
@@ -88,28 +91,56 @@ setupSubscriptions = (page, model, params, next, cb) ->
         descriptors.unshift model.at "groups.#{groupsInfo.partyId}"
         paths.unshift '_page.party'
       unless _.isEmpty(groupsInfo.guildIds)
-        descriptors.unshift model.query 'groups',
-          _id: {$in: groupsInfo.guildIds}
+        descriptors.unshift model.query('groups', _id: $in: groupsInfo.guildIds)
         paths.unshift '_page.guilds'
-      finished descriptors, paths
+      finished()
 
+setupRefLists = (model) ->
+  types = ['habit', 'daily', 'todo', 'reward']
+  uid = model.get('_session.userId')
+
+  ## User
+  _.each types, (type) ->
+    model.refList "_page.lists.tasks.#{uid}.#{type}s", "_page.user.priv.tasks", "_page.user.priv.ids.#{type}s"
+    true
+
+  return # Until we get challenges in
+  ## Groups
+  _.each model.get('groups'), (g) ->
+    gpath = "groups.#{g.id}"
+    model.refList "_page.lists.challenges.#{g.id}", "#{gpath}.challenges", "#{gpath}.ids.challenges"
+    true
+
+    ## Groups -> Challenges
+    _.each g.challenges, (c) ->
+      _.each types, (type) ->
+        cpath = "challenges.#{c.id}"
+        model.refList "_page.lists.tasks.#{c.id}.#{type}s", "#{gpath}.#{cpath}.tasks", "#{gpath}.#{cpath}.ids.#{type}s"
+        true
+      true
+
+#FIXME move this to a callback of derby-auth post-registration, so it's only called once on registration
+initProfileName = (model, cb) ->
+  return cb() unless model.get("_session.loggedIn")
+  candidate = helpers.usernameCandidates(model.get('_page.auth'))
+  if candidate? then model.setNull("_page.user.pub.profile.name", candidate, cb)
+  else cb()
 
 # ========== ROUTES ==========
 
 app.get '/', (page, model, params, next) ->
-  return page.redirect '/' if page.params?.query?.play?
-
   # removed force-ssl (handled in nginx), see git for code
+  return page.redirect '/' if page.params?.query?.play?
   setupSubscriptions page, model, params, next, ->
     require('./items.coffee').server(model)
-    misc.setupRefLists(model)
-    page.render()
-
+    setupRefLists(model)
+    initProfileName model, ->page.render()
 
 # ========== CONTROLLER FUNCTIONS ==========
 
 app.ready (model) ->
-  user = model.at('_session.user')
+  u = require './user.coffee'
+  user = u.userAts(model)
 
   browser = require './browser.coffee'
   require('./tasks.coffee').app(app, model)
@@ -122,29 +153,29 @@ app.ready (model) ->
   browser.app(app, model)
   require('./unlock.coffee').app(app, model)
   require('./filters.coffee').app(app, model)
-  require('./challenges.coffee').app(app, model)
+  #require('./challenges.coffee').app(app, model)
 
   # used for things like remove website, chat, etc
   app.fn 'removeAt', (e, el) ->
     if (confirmMessage = $(el).attr 'data-confirm')?
       return unless confirm(confirmMessage) is true
     e.at().remove()
-    browser.resetDom(model) if $(el).attr('data-refresh')
+    #browser.resetDom(model) if $(el).attr('data-refresh')
 
   ###
     Cron
   ###
-  uObj = user.get(); paths = {}
-  # habitrpg-shared/algos requires uObj.habits, uObj.dailys etc instead of uObj.tasks
-  _.each ['habit','daily','todo','reward'], (type) -> uObj["#{type}s"] = _.where(uObj.tasks, {type}); true
-  algos.cron uObj, {paths}
-  # for new user, just set lastCron - no need to reset dom.
-  unless _.isEmpty(paths) or (paths['lastCron'] and _.size(paths) is 1)
-    if (lostHp = delete paths['stats.hp'])? # we'll set this manually so we can get a cool animation
-      setTimeout ->
-        # we need to reset dom - too many changes have been made and won't it breaks dom listeners.
-        #browser.resetDom(model)
-        user.set 'stats.hp', uObj.stats.hp
-      , 750
-    #user.pass({cron:true}).setDiff(uObj)
-    _.each paths, (v,k) -> user.pass({cron:true}).set(k,helpers.dotGet(k, uObj));true
+  async.nextTick ->
+    uobj = u.transformForAPI model.get('_page.user.pub'), model.get('_page.user.priv')
+    paths = {}
+    algos.cron uobj, {paths}
+    if _.size(paths) > 0
+      if (delete paths['stats.hp'])? # we'll set this manually so we can get a cool animation
+        hp = uobj.stats.hp
+        setTimeout ->
+          # we need to reset dom - too many changes have been made and won't it breaks dom listeners.
+          #browser.resetDom(model)
+          user.pub.set 'stats.hp', hp
+        , 500
+      u.setDiff model, uobj, paths, {pass: cron: true}
+      #_.each paths, (v,k) -> user.pass({cron:true}).set(k,helpers.dotGet(k, uObj));true

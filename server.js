@@ -9,21 +9,6 @@ conf.argv().env().file({ file: __dirname + "/config.json" }).defaults({
    'NODE_ENV': 'development'
 });
 
-// Override normal ENV values with nconf ENV values (ENV values are used the same way without nconf)
-process.env.IP = conf.get("IP");
-process.env.PORT = conf.get("PORT");
-process.env.BASE_URL = conf.get("BASE_URL");
-process.env.FACEBOOK_KEY = conf.get("FACEBOOK_KEY");
-process.env.FACEBOOK_SECRET = conf.get("FACEBOOK_SECRET");
-process.env.NODE_DB_URI = conf.get("NODE_DB_URI");
-process.env.NODE_ENV = conf.get("NODE_ENV");
-process.env.SESSION_SECRET = conf.get("SESSION_SECRET");
-process.env.SMTP_USER = conf.get("SMTP_USER");
-process.env.SMTP_PASS = conf.get("SMTP_PASS");
-process.env.SMTP_SERVICE = conf.get("SMTP_SERVICE");
-process.env.STRIPE_API_KEY = conf.get("STRIPE_API_KEY");
-process.env.STRIPE_PUB_KEY = conf.get("STRIPE_PUB_KEY");
-
 /*var agent;
 if (process.env.NODE_ENV === 'development') {
     // Follow these instructions for profiling / debugging leaks

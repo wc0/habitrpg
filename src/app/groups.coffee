@@ -1,5 +1,6 @@
 _ = require('lodash')
 {helpers} = require('habitrpg-shared')
+u = require './user.coffee'
 
 module.exports.app = (app, model) ->
   browser = require './browser.coffee'
@@ -9,15 +10,15 @@ module.exports.app = (app, model) ->
   # Every 60 seconds, reset the current time so that the chat can update relative times
   setInterval (->currentTime.set +new Date), 60000
 
-  user = model.at('_session.user')
+  user = u.userAts(model)
 
   app.fn 'groupCreate', (e,el) ->
     type = $(el).attr('data-type')
     newGroup =
       name: model.get("_page.new.group.name")
       description: model.get("_page.new.group.description")
-      leader: user.get('id')
-      members: [user.get('id')]
+      leader: user.id
+      members: [user.id]
       type: type
       ids: {challenges: []}
       challenges: {}
@@ -27,13 +28,13 @@ module.exports.app = (app, model) ->
       return model.add 'groups', newGroup, ->location.reload()
 
     # guilds - 4G
-    unless user.get('balance') >= 1
+    unless user.priv.get('balance') >= 1
       return $('#more-gems-modal').modal 'show'
     if confirm "Create Guild for 4 Gems?"
       newGroup.privacy = (model.get("_page.new.group.privacy") || 'public') if type is 'guild'
       newGroup.balance = 1 # they spent $ to open the guild, it goes into their guild bank
       model.add 'groups', newGroup, ->
-        user.incr 'balance', -1, ->location.reload()
+        user.priv.incr 'balance', -1, ->location.reload()
 
   app.fn 'toggleGroupEdit', (e, el) ->
     path = "_page.editing.groups.#{$(el).attr('data-gid')}"
@@ -83,14 +84,14 @@ module.exports.app = (app, model) ->
             else invite()
 
   joinGroup = (gid) ->
-    model.push("groups.#{gid}.members", user.get('id'), ->location.reload())
+    model.push("groups.#{gid}.members", user.id, ->location.reload())
 
   app.fn 'joinGroup', (e, el) -> joinGroup e.get('id')
 
   app.fn 'acceptInvitation', (e,el) ->
     gid = e.get('id')
     if $(el).attr('data-type') is 'party'
-      user.set 'invitations.party', null, ->joinGroup(gid)
+      user.pub.set 'invitations.party', null, ->joinGroup(gid)
     else
       e.at().remove ->joinGroup(gid)
 
@@ -102,7 +103,7 @@ module.exports.app = (app, model) ->
 
   app.fn 'groupLeave', (e,el) ->
     if confirm("Leave this group, are you sure?") is true
-      uid = user.get('id')
+      uid = user.id
       group = model.at "groups.#{$(el).attr('data-id')}"
       index = group.get('members').indexOf(uid)
       if index != -1
@@ -134,34 +135,21 @@ module.exports.app = (app, model) ->
     members = group.get('members'); uniqMembers = _.uniq(members)
     group.set('members', uniqMembers) if !_.isEqual(uniqMembers, members)
 
-    chat = group.at('chat')
     model.set('_page.new.chat', '')
 
+    id = model.id()
     message =
-      id: model.id()
-      uuid: user.get('id')
-      contributor: user.get('backer.contributor')
-      npc: user.get('backer.npc')
+      id: id
+      uuid: user.id
+      contributor: user.pub.get('backer.contributor')
+      npc: user.pub.get('backer.npc')
       text: text
-      user: helpers.username(model.get('_session.user.auth'), model.get('_session.user.profile.name'))
+      user: helpers.username(user.priv.get('auth'), user.pub.get('profile.name'))
       timestamp: +new Date
 
-    # FIXME - sometimes racer will send many duplicates via chat.unshift. I think because it can't make connection, keeps
-    # trying, but all attempts go through. Unfortunately we can't do chat.set without potentially clobbering other chatters,
-    # and we can't make chat an object without using refLists. hack solution for now is to unshift, and if there are dupes
-    # after we set to unique
-    chat.unshift message, ->
-      messages = chat.get() || []
-      count = messages.length
-      messages =_.uniq messages, true, ((m) -> m?.id) # get rid of dupes
-      #There were a bunch of duplicates, let's clean it up
-      if messages.length != count
-        messages.splice(200)
-        chat.set messages
-      else
-        chat.remove(200)
+    group.unshift 'chat', message, ->group.remove('chat', 200)
     type = $(el).attr('data-type')
-    model.set '_session.user.party.lastMessageSeen', chat.get()[0].id  if group.get('type') is 'party'
+    user.priv.set 'party.lastMessageSeen', id if group.get('type') is 'party'
 
   app.fn 'chatKeyup', (e, el, next) ->
     return next() unless e.keyCode is 13
@@ -175,7 +163,7 @@ module.exports.app = (app, model) ->
     $('#party-tab-link').on 'shown', (e) ->
       messages = model.get('_page.party.chat')
       return false unless messages?.length > 0
-      model.set '_session.user.party.lastMessageSeen', messages[0].id
+      user.priv.set 'party.lastMessageSeen', messages[0].id
 
   app.fn 'gotoPartyChat', ->
     model.set '_page.active.gamePane', true, ->

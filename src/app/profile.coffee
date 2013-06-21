@@ -1,21 +1,19 @@
 {helpers, algos, items} = require 'habitrpg-shared'
 browser = require './browser.coffee'
-misc = require './misc.coffee'
+u = require './user.coffee'
 _ = require 'lodash'
 
 module.exports.app = (app, model) ->
-  user = model.at('_session.user')
+  user = u.userAts(model)
 
   app.fn 'revive', ->
-    # Reset stats
-    user.set 'stats.hp', 50
-    user.set 'stats.exp', 0
-    user.set 'stats.gp', 0
-    user.incr 'stats.lvl', -1 if user.get('stats.lvl') > 1
+    uobj = user.pub.get()
+    _.each {hp:50, gp:0, exp:0}, (v,k) -> user.pub.set "stats.#{k}", v; true
+    user.pub.set('stats.lvl', --uobj.stats.lvl) if uobj.stats.lvl > 1
 
     ## Lose a random item
     loseThisItem = false
-    owned = user.get('items')
+    owned = uobj.items
     # unless they're already at 0-everything
     if parseInt(owned.armor)>0 or parseInt(owned.head)>0 or parseInt(owned.shield)>0 or parseInt(owned.weapon)>0
       # find a random item to lose
@@ -23,58 +21,53 @@ module.exports.app = (app, model) ->
         #candidate = {0:'items.armor', 1:'items.head', 2:'items.shield', 3:'items.weapon', 4:'stats.gp'}[Math.random()*5|0]
         candidate = {0:'armor', 1:'head', 2:'shield', 3:'weapon'}[Math.random()*4|0]
         loseThisItem = candidate if owned[candidate] > 0
-      user.set "items.#{loseThisItem}", 0
+      user.pub.set "items.#{lostThisItem}", 0
 
     items.updateStore(model)
 
   app.fn 'reset', (e, el) ->
-    misc.batchTxn model, (uObj, paths, batch) ->
-      batch.set 'tasks', {}
-      ['habit', 'daily', 'todo', 'reward'].forEach (type) -> batch.set("ids.#{type}s", [])
-      _.each {hp:50, lvl:1, gp:0, exp:0}, (v,k) -> batch.set("stats.#{k}",v)
-      _.each {armor:0, weapon:0, head:0, shield:0}, (v,k) -> batch.set("items.#{k}",v)
+    user.priv.set 'tasks', {}
+    ['habit', 'daily', 'todo', 'reward'].forEach (type) -> user.priv.set "ids.#{type}s", []
+
+    _.each {hp:50, lvl:1, gp:0, exp:0}, (v,k) -> user.pub.set "stats.#{k}", v; true
+    _.each {armor:0, weapon:0, head:0, shield:0}, (v,k) -> user.pub.set "items.#{k}", v; true
+
     items.updateStore(model)
-    browser.resetDom(model)
+    #browser.resetDom(model)
 
   app.fn 'closeNewStuff', (e, el) ->
-    user.set('flags.newStuff', 'hide')
+    user.priv.set('flags.newStuff', 'hide')
 
-  app.fn 'customizeGender', (e, el) ->
-    user.set 'preferences.gender', $(el).attr('data-value')
-
-  app.fn 'customizeHair', (e, el) ->
-    user.set 'preferences.hair', $(el).attr('data-value')
-
-  app.fn 'customizeSkin', (e, el) ->
-    user.set 'preferences.skin', $(el).attr('data-value')
-
-  app.fn 'customizeArmorSet', (e, el) ->
-    user.set 'preferences.armorSet', $(el).attr('data-value')
+  app.fn 'customizeAvatar', (e, el) ->
+    [k, v] = [$(el).attr('data-attr'), $(el).attr('data-value')]
+    user.pub.set "preferences.#{k}", v
 
   app.fn 'restoreSave', ->
-    misc.batchTxn model, (uObj, paths, batch) ->
-      $('#restore-form input').each ->
-        [path, val] = [$(this).attr('data-for'), parseInt($(this).val() || 1)]
-        batch.set(path,val)
+    $('#restore-form input').each ->
+      [path, val] = [$(this).attr('data-for'), parseInt($(this).val() || 1)]
+      user.pub.set(path,val)
 
   app.fn 'toggleHeader', (e, el) ->
-    user.set 'preferences.hideHeader', !user.get('preferences.hideHeader')
+    user.pub.set 'preferences.hideHeader', !user.pub.get('preferences.hideHeader')
 
   app.fn 'deleteAccount', (e, el) ->
-    model.del "users.#{user.get('id')}", ->
-      location.href = "/logout"
+    count = 3
+    done = ->
+      location.href = "/logout" if (--count is 0)
+    ['usersPublic', 'usersPrivate', 'auths'].forEach (collection) ->
+      model.del "#{collection}.#{user.id}", done
 
   app.fn 'profileAddWebsite', (e, el) ->
     newWebsite = model.get('_page.new.profileWebsite')
     return if /^(\s)*$/.test(newWebsite)
-    user.unshift 'profile.websites', newWebsite
+    user.pub.unshift 'profile.websites', newWebsite
     model.set '_page.new.profileWebsite', ''
 
   app.fn 'profileRemoveWebsite', (e, el) ->
-    sites = user.get 'profile.websites'
+    sites = user.pub.get 'profile.websites'
     i = sites.indexOf $(el).attr('data-website')
     sites.splice(i,1)
-    user.set 'profile.websites', sites
+    user.pub.set 'profile.websites', sites
 
 
   toggleGamePane = ->
@@ -91,5 +84,5 @@ module.exports.app = (app, model) ->
   app.fn 'toggleGamePane', -> toggleGamePane()
 
   app.fn 'toggleResting', ->
-    model.set '_session.user.flags.rest', !model.get('_session.user.flags.rest')
+    user.priv.set 'flags.rest', !user.priv.get('flags.rest')
 

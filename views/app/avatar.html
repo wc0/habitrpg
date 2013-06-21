@@ -10,7 +10,7 @@
 
 <avatar:>
     <figure class="herobox"
-                data-name="{username(@profile.auth, @profile.profile.name)}"
+                data-name="{username(@profile.profile.name)}"
                 data-level="{@profile.stats.lvl}"
                 data-checkpet="{#if @profile.items.pet}hasPet{/}"
                 data-checkuser="{{#if @main}}isUser{{/}}"
@@ -72,16 +72,16 @@
 <customize:>
 
     <!-- customization options -->
-    {#with _session.user.preferences as :p}
+    {#with _page.user.pub.preferences as :p}
         <menu type="list">
             <!-- gender -->
             <li class="customize-menu">
                 <menu label="Head">
-                    <button type="button" class="m_head_0 customize-option" data-value="m" x-bind="click:customizeGender"></button>
-                    <button type="button" class="f_head_0 customize-option" data-value="f" x-bind="click:customizeGender"></button>
+                    <button type="button" class="m_head_0 customize-option" data-value="m" data-attr="gender" x-bind="click:customizeAvatar"></button>
+                    <button type="button" class="f_head_0 customize-option" data-value="f" data-attr="gender" x-bind="click:customizeAvatar"></button>
                 </menu>
                 <label class="checkbox">
-                    <input type=checkbox checked="{_session.user.preferences.showHelm}" /> Show Helm
+                    <input type=checkbox checked="{_page.user.pub.preferences.showHelm}" /> Show Helm
                 </label>
 
             </li>
@@ -89,31 +89,31 @@
             <!-- hair -->
             <li class="customize-menu">
                 <menu label="Hair">
-                    <button type="button" class="{:p.gender}_hair_blond customize-option" data-value="blond" x-bind="click:customizeHair"></button>
-                    <button type="button" class="{:p.gender}_hair_black customize-option" data-value="black" x-bind="click:customizeHair"></button>
-                    <button type="button" class="{:p.gender}_hair_brown customize-option" data-value="brown" x-bind="click:customizeHair"></button>
-                    <button type="button" class="{:p.gender}_hair_white customize-option" data-value="white" x-bind="click:customizeHair"></button>
+                    <button type="button" class="{:p.gender}_hair_blond customize-option" data-value="blond" data-attr="hair" x-bind="click:customizeAvatar"></button>
+                    <button type="button" class="{:p.gender}_hair_black customize-option" data-value="black" data-attr="hair" x-bind="click:customizeAvatar"></button>
+                    <button type="button" class="{:p.gender}_hair_brown customize-option" data-value="brown" data-attr="hair" x-bind="click:customizeAvatar"></button>
+                    <button type="button" class="{:p.gender}_hair_white customize-option" data-value="white" data-attr="hair" x-bind="click:customizeAvatar"></button>
                 </menu>
             </li>
 
             <!-- skin -->
             <li class="customize-menu">
                 <menu label="Skin">
-                    <button type="button" class='{:p.gender}_skin_dead customize-option' data-value="dead" x-bind="click:customizeSkin"></button>
-                    <button type="button" class='{:p.gender}_skin_orc customize-option' data-value="orc" x-bind="click:customizeSkin"></button>
-                    <button type="button" class='{:p.gender}_skin_asian customize-option' data-value="asian" x-bind="click:customizeSkin"></button>
-                    <button type="button" class='{:p.gender}_skin_black customize-option' data-value="black" x-bind="click:customizeSkin"></button>
-                    <button type="button" class='{:p.gender}_skin_white customize-option' data-value="white" x-bind="click:customizeSkin"></button>
+                    <button type="button" class='{:p.gender}_skin_dead customize-option' data-value="dead" data-attr="skin" x-bind="click:customizeAvatar"></button>
+                    <button type="button" class='{:p.gender}_skin_orc customize-option' data-value="orc" data-attr="skin" x-bind="click:customizeAvatar"></button>
+                    <button type="button" class='{:p.gender}_skin_asian customize-option' data-value="asian" data-attr="skin" x-bind="click:customizeAvatar"></button>
+                    <button type="button" class='{:p.gender}_skin_black customize-option' data-value="black" data-attr="skin" x-bind="click:customizeAvatar"></button>
+                    <button type="button" class='{:p.gender}_skin_white customize-option' data-value="white" data-attr="skin" x-bind="click:customizeAvatar"></button>
                 </menu>
             </li>
         </menu>
 
-        {#if equal(_session.user.preferences.gender, 'f')} <!-- Sorry boys -->
+        {#if equal(_page.user.pub.preferences.gender, 'f')} <!-- Sorry boys -->
             <menu type="list">
                 <li class="customize-menu">
                     <menu label="Clothing">
-                        <button type="button" class="f_armor_0_v1 customize-option" data-value="v1" x-bind="click:customizeArmorSet"></button>
-                        <button type="button" class="f_armor_0_v2 customize-option" data-value="v2" x-bind="click:customizeArmorSet"></button>
+                        <button type="button" class="f_armor_0_v1 customize-option" data-value="v1" data-attr="armorSet" x-bind="click:customizeAvatar"></button>
+                        <button type="button" class="f_armor_0_v2 customize-option" data-value="v2" data-attr="armorSet" x-bind="click:customizeAvatar"></button>
                     </menu>
                 </li>
             </menu>
@@ -123,25 +123,25 @@
 <profile-edit:>
     <!--<a class='btn btn-success' x-bind="click:profileSave">Save</a>-->
     <!-- TODO use photo-upload instead: https://groups.google.com/forum/?fromgroups=#!topic/derbyjs/xMmADvxBOak -->
-    <img class='pull-right' src="{_session.user.profile.imageUrl}" />
+    <img class='pull-right' src="{_page.user.pub.profile.imageUrl}" />
     <div class="control-group">
         <label class="control-label" for="profileImageUrl">Photo Url</label>
         <div class="controls">
-            <input type="url" id="profileImageUrl" value="{_session.user.profile.imageUrl}" placeholder="Image Url"/>
+            <input type="url" id="profileImageUrl" value="{_page.user.pub.profile.imageUrl}" placeholder="Image Url"/>
         </div>
     </div>
 
     <div class="control-group">
         <label class="control-label" for="profileFullName">Full Name</label>
         <div class="controls">
-            <input type="text" id="profileFullName" placeholder="Full Name" value="{_session.user.profile.name}" />
+            <input type="text" id="profileFullName" placeholder="Full Name" value="{_page.user.pub.profile.name}" />
         </div>
     </div>
 
     <div class="control-group">
         <label class="control-label" for="profileBlurb">Blurb</label>
         <div class="controls">
-            <textarea id="profileBlurb" placeholder="Blurb" >{_session.user.profile.blurb}</textarea>
+            <textarea id="profileBlurb" placeholder="Blurb" >{_page.user.pub.profile.blurb}</textarea>
         </div>
     </div>
 
@@ -154,7 +154,7 @@
         </div>
         <ul>
             <!-- would prefer if there were and index in #each, instead using data-website to search with indexOf -->
-            {#each _session.user.profile.websites as :website}
+            {#each _page.user.pub.profile.websites as :website}
             <li>{:website} <a data-website="{:website}" x-bind="click:profileRemoveWebsite"><i class='icon-remove'></i></a></li>
             {/}
         </ul>
@@ -162,7 +162,7 @@
     </div>
 
 <profile:>
-    <h2 class='profile-modal-header'>{{username(@profile.auth, @profile.profile.name)}}</h2>
+    <h2 class='profile-modal-header'>{{username(@profile.profile.name)}}</h2>
     <hr/>
     <div class='row-fluid'>
         <div class='span6'>
@@ -258,7 +258,7 @@
         <div class='achievement {{@classes}}'></div>{@content}
         <hr/>
     {else if @unlockable} <!-- only show silhouettes on own tab -->
-        {{#if equal(_session.user.id,@profile.id)}}
+        {{#if equal(_session.userId,@profile.id)}}
             <span class='muted'>
             {@content}
             </span>

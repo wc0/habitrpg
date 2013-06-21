@@ -52,11 +52,11 @@
             {{#if @main}}
             <!-- todo export/graph options -->
             <span class='option-box pull-right'>
-                {#if _session.user.history.todos}
+                {#if _page.user.priv.history.todos}
                   <a class="option-action" x-bind=click:toggleChart data-id="todos" rel=tooltip title="Progress"><i class=icon-signal></i></a>
                 {/}
-                <a class="option-action" href="/v1/users/{{_session.user.id}}/calendar.ics?apiToken={{_session.user.apiToken}}" rel=tooltip title="iCal"><i class=icon-calendar></i></a>
-                <!-- <a href="https://www.google.com/calendar/render?cid={{encodeiCalLink(_session.user.id, _session.user.apiToken)}}" rel=tooltip title="Google Calendar"><i class=icon-calendar></i></a> -->
+                <a class="option-action" href="/v1/users/{{_session.userId}}/calendar.ics?apiToken={{_page.user.priv.apiToken}}" rel=tooltip title="iCal"><i class=icon-calendar></i></a>
+                <!-- <a href="https://www.google.com/calendar/render?cid={{encodeiCalLink(_session.userId, _page.user.priv.apiToken)}}" rel=tooltip title="Google Calendar"><i class=icon-calendar></i></a> -->
             </span>
             {{/}}
 
@@ -91,11 +91,11 @@
             <!-- cash or gems -->
             <span class='option-box pull-right wallet'>
                 <div class="money">
-                    {gold(floor(_session.user.stats.gp))}
+                    {gold(floor(_page.user.pub.stats.gp))}
                     <span class='shop_gold' rel='tooltip' title='Gold'></span>
                 </div>
                 <div class="money">
-                    {silver(_session.user.stats.gp)}
+                    {silver(_page.user.pub.stats.gp)}
                     <span class='shop_silver' rel='tooltip' title='Silver'></span>
                 </div>
             </span>
@@ -113,7 +113,7 @@
                 <@extra>
                 {{#if @main}}
                     <!-- Static Rewards -->
-                    <ul class='items {#unless _session.user.flags.itemsEnabled}hidden{/}'>
+                    <ul class='items {#unless _page.user.priv.flags.itemsEnabled}hidden{/}'>
                         <app:rewards:item item={_page.items.next.weapon} />
                         <app:rewards:item item={_page.items.next.armor} />
                         <app:rewards:item item={_page.items.next.head} />
@@ -152,7 +152,7 @@
     {{@extra}}
     <br/>
     <!-- ads -->
-    {{#if and( _session.loggedIn, notEqual(_session.user.flags.ads,'hide'), @main )}}
+    {{#if and( _session.loggedIn, notEqual(_page.user.priv.flags.ads,'hide'), @main )}}
         <span class='pull-right'>
             <a x-bind="click:showStripe" rel='tooltip' title='Remove Ads'><i class='icon-remove'></i></a><br/>
             <a href="#" data-target="#why-ads-modal" data-toggle="modal" rel='tooltip' title='Why Ads?'><i class='icon-question-sign'></i></a>
@@ -163,7 +163,7 @@
 
 <!-- all the parts of a single task -->
 <task:>
-    <li data-id={{:task.id}} class="task {taskClasses(:task, users[_session.userId].filters, _session.user.preferences.dayStart, _session.user.lastCron, _page.active.completed, @main)}">
+    <li data-id={{:task.id}} class="task {taskClasses(:task, users[_session.userId].filters, _page.user.pub.preferences.dayStart, _page.user.priv.lastCron, _page.active.completed, @main)}">
 
         <!-- right-hand side control buttons -->
         <div class="task-meta-controls">

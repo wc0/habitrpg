@@ -1,7 +1,7 @@
 <modals:>
 
   <app:modals:modal modalId='drops-enabled-modal' header="Drops Enabled!">
-    <p><span class="Pet_Egg_{_session.user.items.eggs.0.name} item-drop-icon"></span> You've unlocked the Drop System! Now when you complete tasks, you have a small chance of finding an item. And guess what, you just found a <strong>{_session.user.items.eggs.0.text} egg</strong>! {_session.user.items.eggs.0.notes}</p>
+    <p><span class="Pet_Egg_{_page.user.pub.items.eggs.0.name} item-drop-icon"></span> You've unlocked the Drop System! Now when you complete tasks, you have a small chance of finding an item. And guess what, you just found a <strong>{_page.user.pub.items.eggs.0.text} egg</strong>! {_page.user.pub.items.eggs.0.notes}</p>
     <@footer>
       <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
     </@footer>
@@ -26,7 +26,7 @@
     </app:modals:modal>
 
 <pet:>
-    <td class="{#if _session.user.items.pets[.name]}active-pet{/}">
+    <td class="{#if _page.user.pub.items.pets[.name]}active-pet{/}">
         <img rel=tooltip title="{.text} - {.value} Gems" x-bind="click:selectPet" data-pet='{.name}' src='img/sprites/{.icon}'/>
     </td>
 
@@ -48,10 +48,10 @@
             <menu type="list" class="inventory-list">
                 <li class="customize-menu">
                     <menu label="Eggs" class='pets-menu'>
-                        {#if not(_session.user.items.eggs)}
+                        {#if not(_page.user.pub.items.eggs)}
                             <p>You don't have any eggs yet.</p>
                         {/if}
-                        {#each _session.user.items.eggs as :egg}
+                        {#each _page.user.pub.items.eggs as :egg}
                             <div>
                                 <button rel=tooltip title="{:egg.text}" class="customize-option Pet_Egg_{{:egg.name}}" x-bind="click: chooseEgg"></button>
                                 <p>{:egg.text}</p>
@@ -61,10 +61,10 @@
                 </li>
                 <li class="customize-menu">
                     <menu label="Hatching Potions" class='hatchingPotion-menu'>
-                        {#if not(_session.user.items.hatchingPotions)}
+                        {#if not(_page.user.pub.items.hatchingPotions)}
                             <p>You don't have any hatching potions yet.</p>
                         {/if}
-                        {#each _session.user.items.hatchingPotions as :hatchingPotion}
+                        {#each _page.user.pub.items.hatchingPotions as :hatchingPotion}
                             <div>
                                 <button rel=tooltip title="{:hatchingPotion}" class="customize-option Pet_HatchingPotion_{{:hatchingPotion}}" x-bind="click: chooseHatching Potion"></button>
                                 <p>{:hatchingPotion}</p>
@@ -77,13 +77,13 @@
         {#if _page.hatchEgg}
         <div class='span6'>
             <h3>Hatch Your Egg</h3>
-            {#if not(_session.user.items.hatchingPotions)}
+            {#if not(_page.user.pub.items.hatchingPotions)}
             <p>You don't have any hatching potions yet.</p>
             {else}
             <p>Which hatching potion will you pour on your {_page.hatchEgg.text} egg?</p>
             <form x-bind="submit:hatchEgg">
                 <select>
-                    {#each _session.user.items.hatchingPotions as :hatchingPotion}
+                    {#each _page.user.pub.items.hatchingPotions as :hatchingPotion}
                         <option>{:hatchingPotion}</option>
                     {/each}
                 </select>
@@ -103,7 +103,7 @@
             <h3 class="popover-title">Matt Boch</h3>
             <div class="popover-content">
                 <p>Welcome to the Stable! I'm <a target="_blank" href="http://www.kickstarter.com/profile/mattboch">Matt</a>, the beast master. Choose a pet here to adventure at your side - they aren't much help yet, but I forsee a time when they're able to <a href="_target" href="https://trello.com/card/mounts/50e5d3684fe3a7266b0036d6/221">grow into powerful steeds</a>! Until that day, <a target="_blank" href="https://f.cloud.github.com/assets/2374703/164631/3ed5fa6c-78cd-11e2-8743-f65ac477b55e.png">have a look-see</a> at all the pets you can collect.</p>
-                <h4>{count(_session.user.items.pets)} / 90 Pets Found</h4>
+                <h4>{count(_page.user.pub.items.pets)} / 90 Pets Found</h4>
             </div>
         </div></td>
     </tr></table>
@@ -128,14 +128,14 @@
     <table>
         <tr>
             <td><app:pets:stable-pet potion='Veteran Wolf' pet="Wolf-Veteran" /></td>
-            {{#if gt(_session.user.backer.tier,79)}}<td><app:pets:stable-pet potion='Cerberus Pup' pet="Wolf-Cerberus" /></td>{{/}}
+            {{#if gt(_page.user.pub.backer.tier,79)}}<td><app:pets:stable-pet potion='Cerberus Pup' pet="Wolf-Cerberus" /></td>{{/}}
         </tr>
     </table>
 
 <stable-pet:>
     <div rel="tooltip" title="{{@tooltip}}">
-        {#if ownsPet(@pet, _session.user.items.pets)}
-            <button class="pet-button Pet-{{@pet}} {#if equal(_session.user.items.currentPet.name, @string)}active{/if}" data-pet="{{@pet}}" x-bind="click:choosePet"></button>
+        {#if ownsPet(@pet, _page.user.pub.items.pets)}
+            <button class="pet-button Pet-{{@pet}} {#if equal(_page.user.pub.items.currentPet.name, @string)}active{/if}" data-pet="{{@pet}}" x-bind="click:choosePet"></button>
         {else}
             <button class="pet-button pet-not-owned" data-pet="{{@pet}}"><img src="/img/PixelPaw.png"/></button>
         {/}
