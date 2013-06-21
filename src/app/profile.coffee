@@ -30,7 +30,7 @@ module.exports.app = (app, model) ->
   app.fn 'reset', (e, el) ->
     misc.batchTxn model, (uObj, paths, batch) ->
       batch.set 'tasks', {}
-      ['habit', 'daily', 'todo', 'reward'].forEach (type) -> batch.set("#{type}Ids", [])
+      ['habit', 'daily', 'todo', 'reward'].forEach (type) -> batch.set("ids.#{type}s", [])
       _.each {hp:50, lvl:1, gp:0, exp:0}, (v,k) -> batch.set("stats.#{k}",v)
       _.each {armor:0, weapon:0, head:0, shield:0}, (v,k) -> batch.set("items.#{k}",v)
     items.updateStore(model)

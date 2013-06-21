@@ -50,7 +50,7 @@ module.exports.setupRefLists = (model) ->
 
   ## User
   _.each types, (type) ->
-    model.refList "_page.lists.tasks.#{uid}.#{type}s", "_session.user.tasks", "_session.user.#{type}Ids"
+    model.refList "_page.lists.tasks.#{uid}.#{type}s", "_session.user.tasks", "_session.user.ids.#{type}s"
 
   ## Groups
   _.each model.get('groups'), (g) ->

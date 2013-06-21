@@ -171,7 +171,7 @@ updateTasks = (tasks, user, model) ->
     else
       type = task.type || 'habit'
       user.set "tasks.#{task.id}", task
-      user.push "#{type}Ids", task.id
+      user.push "ids.#{type}s", task.id
     tasks[idx] = task
   return tasks
 
@@ -189,7 +189,7 @@ router.post '/user/task', auth, validateTask, (req, res) ->
 
   model = req.getModel()
   user.set "tasks.#{task.id}", task
-  user.push "#{type}Ids", task.id
+  user.push "ids.#{type}s", task.id
 
   res.json 201, task
 
@@ -207,7 +207,7 @@ router.get '/user/tasks', auth, (req, res) ->
   if /^(habit|todo|daily|reward)$/.test req.query.type
     types = [req.query.type]
   for type in types
-    model.refList "_page.#{type}List", "_session.user.tasks", "_session.user.#{type}Ids"
+    model.refList "_page.#{type}List", "_session.user.tasks", "_session.user.ids.#{type}s"
     tasks = tasks.concat model.get("_page.#{type}List")
 
   res.json 200, tasks
@@ -250,7 +250,7 @@ scoreTask = (req, res, next) ->
       when 'daily', 'todo'
         task.completed = direction is 'up'
 
-    model.refList "_page.#{type}List", "_session.user.tasks", "_session.user.#{type}Ids"
+    model.refList "_page.#{type}List", "_session.user.tasks", "_session.user.ids.#{type}s"
     model.at("_page.#{type}List").push task
 
   #FIXME
