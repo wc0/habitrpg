@@ -1,28 +1,35 @@
 _ = require 'lodash'
 moment = require 'moment'
+async = require 'async'
 
 ###
   Setup jQuery UI Sortable
 ###
 setupSortable = (model) ->
-  return unless (model.get('_session.flags.isMobile') is true) #don't do sortable on mobile
-  ['habit', 'daily', 'todo', 'reward'].forEach (type) ->
-    $("ul.#{type}s").sortable
-      dropOnEmpty: false
-      cursor: "move"
-      items: "li"
-      scroll: true
-      axis: 'y'
-      update: (e, ui) ->
-        item = ui.item[0]
-        domId = item.id
-        id = item.getAttribute 'data-id'
-        to = $("ul.#{type}s").children().index(item)
-        # Use the Derby ignore option to suppress the normal move event
-        # binding, since jQuery UI will move the element in the DOM.
-        # Also, note that refList index arguments can either be an index
-        # or the item's id property
-        model.at("_page.lists.tasks.#{model.get('_session.userId')}.#{type}s").pass(ignore: domId).move {id}, to
+  return if (model.get('_session.flags.isMobile') is true) #don't do sortable on mobile
+  async.nextTick ->
+    ['habit', 'daily', 'todo', 'reward'].forEach (type) ->
+      from = null
+      list = model.at "_page.lists.tasks.#{model.get('_session.userId')}.#{type}s"
+      ul = $("ul.#{type}s")
+      ul.sortable
+        dropOnEmpty: false
+        cursor: "help"
+        items: "li"
+        scroll: true
+        axis: 'y'
+        start: (e, ui) =>
+          item = ui.item[0]
+          from = ul.children().index(item)
+        update: (e, ui) =>
+          item = ui.item[0]
+          to = ul.children().index(item)
+          # Use the Derby ignore option to suppress the normal move event
+          # binding, since jQuery UI will move the element in the DOM.
+          # Also, note that refList index arguments can either be an index
+          # or the item's id property
+          debugger
+          list.pass(ignore: item.id).move from, to
 
 setupTooltips = module.exports.setupTooltips = ->
   $('[rel=tooltip]').tooltip()
