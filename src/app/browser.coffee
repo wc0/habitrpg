@@ -5,24 +5,24 @@ moment = require 'moment'
   Setup jQuery UI Sortable
 ###
 setupSortable = (model) ->
-  unless (model.get('_session.flags.isMobile') is true) #don't do sortable on mobile
-    ['habit', 'daily', 'todo', 'reward'].forEach (type) ->
-      $("ul.#{type}s").sortable
-        dropOnEmpty: false
-        cursor: "move"
-        items: "li"
-        scroll: true
-        axis: 'y'
-        update: (e, ui) ->
-          item = ui.item[0]
-          domId = item.id
-          id = item.getAttribute 'data-id'
-          to = $("ul.#{type}s").children().index(item)
-          # Use the Derby ignore option to suppress the normal move event
-          # binding, since jQuery UI will move the element in the DOM.
-          # Also, note that refList index arguments can either be an index
-          # or the item's id property
-          model.at("_page.lists.tasks.#{model.get('_session.userId')}.#{type}s").pass(ignore: domId).move {id}, to
+  return unless (model.get('_session.flags.isMobile') is true) #don't do sortable on mobile
+  ['habit', 'daily', 'todo', 'reward'].forEach (type) ->
+    $("ul.#{type}s").sortable
+      dropOnEmpty: false
+      cursor: "move"
+      items: "li"
+      scroll: true
+      axis: 'y'
+      update: (e, ui) ->
+        item = ui.item[0]
+        domId = item.id
+        id = item.getAttribute 'data-id'
+        to = $("ul.#{type}s").children().index(item)
+        # Use the Derby ignore option to suppress the normal move event
+        # binding, since jQuery UI will move the element in the DOM.
+        # Also, note that refList index arguments can either be an index
+        # or the item's id property
+        model.at("_page.lists.tasks.#{model.get('_session.userId')}.#{type}s").pass(ignore: domId).move {id}, to
 
 setupTooltips = module.exports.setupTooltips = ->
   $('[rel=tooltip]').tooltip()

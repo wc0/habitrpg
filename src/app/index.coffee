@@ -28,12 +28,9 @@ setupSubscriptions = (page, model, params, next, cb) ->
   ###
   Queries
   ###
-  $publicGroups = model.query 'groups',
-    privacy: 'public'
-    type: 'guild'
+  $publicGroups = model.query 'groups', {privacy: 'public', type: 'guild'}
     #.only(['id', 'type', 'name', 'description', 'members' , 'privacy'])
-  $myGroups = model.query 'groups',
-    members: {$in: [uuid]}
+  $myGroups = model.query 'groups', {members: $in: [uuid]}
     #.only(['id', 'type', 'name', 'description', 'members' , 'privacy'])
 
   model.fetch $publicGroups, $myGroups, (err) ->
@@ -77,15 +74,14 @@ setupSubscriptions = (page, model, params, next, cb) ->
     ), {guildIds:[], partyId:null, members:[]}
 
     # Fetch, not subscribe. There's nothing dynamic we need from members, just the the Group (below) which includes chat, challenges, etc
-    $members = model.query 'usersPublic',
-      _id: {$in: groupsInfo.members}
+    $members = model.query 'usersPublic', {_id: $in: groupsInfo.members}
       #.only 'stats','items','invitations','profile','achievements','backer','preferences','auth.local.username','auth.facebook.displayName'
     $members.fetch (err) ->
       return next(err) if err
       # we need _page.members as an object in the view, so we can iterate over _page.party.members as :id, and access _page.members[:id] for the info
-      mObj = $members.get()
-      model.set "_page.members", _.object(_.pluck(mObj,'id'), mObj)
-      model.set "_page.membersArray", mObj
+      arr = $members.get()
+      model.set "_page.members", _.object(_.pluck(arr,'id'), arr)
+      model.set "_page.membersArray", arr
 
       if groupsInfo.partyId
         descriptors.unshift model.at "groups.#{groupsInfo.partyId}"

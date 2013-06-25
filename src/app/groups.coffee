@@ -45,29 +45,31 @@ module.exports.app = (app, model) ->
     model.set path, !model.get(path)
 
   app.fn 'groupAddWebsite', (e, el) ->
-    test = e.get()
-    e.at().unshift 'websites', model.get('_page.new.groupWebsite')
-    model.del '_page.new.groupWebsite'
+    e.at().unshift 'websites', model.get('_page.new.groupWebsite'), ->
+      model.del '_page.new.groupWebsite'
 
   app.fn 'groupInvite', (e,el) ->
     uid = model.get('_page.new.groupInvite').replace(/[\s"]/g, '')
     model.set '_page.new.groupInvite', ''
     return if _.isEmpty(uid)
 
-    model.query('users').publicInfo([uid]).fetch (err, profiles) ->
+    $user = model.at "usersPublic.#{uid}"
+    $user.fetch (err) ->
       throw err if err
-      profile = profiles.at(0).get()
+      profile = $user.get()
       return model.set("_page.errors.group", "User with id #{uid} not found.") unless profile
-      model.query('groups').withMember(uid).fetch (err, g) ->
+
+      $groups = model.query 'groups', {members: $in: [uid]}
+      $groups.fetch (err) ->
         throw err if err
-        group = e.get(); groups = g.get()
+        [group, groups] = [e.get(), $groups.get()]
         {type, name} = group; gid = group.id
         groupError = (msg) -> model.set("_page.errors.group", msg)
         invite = ->
           $.bootstrapGrowl "Invitation Sent."
           switch type
-            when 'guild' then model.push "users.#{uid}.invitations.guilds", {id:gid, name}, ->location.reload()
-            when 'party' then model.set "users.#{uid}.invitations.party", {id:gid, name}, ->location.reload()
+            when 'guild' then $user.push "invitations.guilds", {id:gid, name}, ->location.reload()
+            when 'party' then $user.set "invitations.party", {id:gid, name}, ->location.reload()
 
         switch type
           when 'guild'
@@ -84,7 +86,8 @@ module.exports.app = (app, model) ->
             else invite()
 
   joinGroup = (gid) ->
-    model.push("groups.#{gid}.members", user.id, ->location.reload())
+    $group = model.at "groups.#{gid}"
+    $group.fetch (err) -> $group.push("members", user.id, ->location.reload())
 
   app.fn 'joinGroup', (e, el) -> joinGroup e.get('id')
 
