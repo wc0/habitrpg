@@ -4,10 +4,12 @@ derby = require('derby')
 racerBrowserChannel = require('racer-browserchannel')
 LiveDbMongo = require('livedb-mongo').LiveDbMongo
 MongoStore = require('connect-mongo')(express)
-app = require('../app')
 error = require('./serverError')
 mongoskin = require('mongoskin')
 publicDir = require('path').join __dirname + '/../../public'
+
+login = require('../login')
+main = require('../app')
 
 auth = require 'derby-auth'
 nconf = require 'nconf'
@@ -71,7 +73,20 @@ strategies =
       clientID: nconf.get('FACEBOOK_KEY')
       clientSecret: nconf.get('FACEBOOK_SECRET')
 options =
-  domain: nconf.get('BASE_URL')
+  site:
+    domain: nconf.get('BASE_URL')
+  passport:
+    registerCallback: (req, res, auth, next) ->
+      u = require('../app/user.coffee')
+      model = req.getModel()
+      uobj = u.transformForDerby helpers.newUser()
+      uobj.priv.id = uobj.pub.id = auth.id
+      uobj.pub.profile = name: helpers.usernameCandidates(auth)
+      model.add "usersPublic", uobj.pub, (err) ->
+        return next(err) if err
+        model.add "usersPrivate", uobj.priv, (err) ->
+          return next(err) if err
+          next()
 
 # This has to happen before our middleware stuff
 auth.store(store, mongo, strategies)
@@ -81,7 +96,8 @@ expressApp
   .use(middleware.allowCrossDomain)
   .use(express.favicon())
   .use(express.compress()) # Gzip dynamically
-  .use(app.scripts(store)) # Respond to requests for application script bundles
+  .use(main.scripts(store)) # Respond to requests for application script bundles
+  .use(login.scripts(store)) # Respond to requests for application script bundles
   .use(express['static'](publicDir)) # Serve static files from the public directory
 
   # Session middleware
@@ -105,9 +121,6 @@ expressApp
 
   .use(store.modelMiddleware()) # Add req.getModel() method
 
-  # Allow users to play with Habit before commiting to registration
-  .use(middleware.stagingUser)
-
   # Authentication
   .use(auth.middleware(strategies, options))
 
@@ -120,12 +133,12 @@ expressApp
   .use(require('./deprecated').middleware)
 
   # Other custom middlewares
-  .use(middleware.splash) # Show splash page for newcomers
   .use(priv.middleware)
   .use(middleware.view)
 
   # Create an express middleware from the app's routes
-  .use(app.router())
+  .use(main.router())
+  .use(login.router())
   .use(require('./static').middleware) #custom static middleware
   .use error()
 

@@ -1,4 +1,19 @@
-db.users.find().forEach(function(user){
+var un_registered = {
+        "auth.local": {$exists: false},
+        "auth.facebook": {$exists: false}
+    },
+
+    registered = {
+        $or: [
+            { 'auth.local': { $exists: true }},
+            { 'auth.facebook': { $exists: true }}
+        ]
+    };
+
+// we're completely doing away with staging users. too difficult to keep up with now, with migrations being an issue, etc
+db.users.remove(un_registered);
+
+db.users.find(registered).forEach(function(user){
 
     user.ids = {};
     ['habit','daily','todo','reward'].forEach(function(type){

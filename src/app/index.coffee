@@ -115,22 +115,16 @@ setupRefLists = (model) ->
         true
       true
 
-#FIXME move this to a callback of derby-auth post-registration, so it's only called once on registration
-initProfileName = (model, cb) ->
-  return cb() unless model.get("_session.loggedIn")
-  candidate = helpers.usernameCandidates(model.get('_page.auth'))
-  if candidate? then model.setNull("_page.user.pub.profile.name", candidate, cb)
-  else cb()
-
 # ========== ROUTES ==========
 
 app.get '/', (page, model, params, next) ->
   # removed force-ssl (handled in nginx), see git for code
-  return page.redirect '/' if page.params?.query?.play?
+  return page.redirect '/home' unless model.get("_session.loggedIn")
+
   setupSubscriptions page, model, params, next, ->
     require('./items.coffee').server(model)
     setupRefLists(model)
-    initProfileName model, ->page.render()
+    page.render()
 
 # ========== CONTROLLER FUNCTIONS ==========
 
