@@ -50,3 +50,10 @@ db.users.find().forEach(function(user){
     }
 
 })
+
+// Drop some collections
+db.sessions.drop();
+db.myDupesCollection.drop();
+
+// Add indices
+db.usersPrivate.ensureIndex( { _id: 1, apiToken: 1 }, {background: true} )
