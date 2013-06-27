@@ -34,7 +34,7 @@ module.exports.app = (app, model) ->
       newGroup.privacy = (model.get("_page.new.group.privacy") || 'public') if type is 'guild'
       newGroup.balance = 1 # they spent $ to open the guild, it goes into their guild bank
       model.add 'groups', newGroup, ->
-        user.priv.incr 'balance', -1, ->location.reload()
+        user.priv.increment 'balance', -1, ->location.reload()
 
   app.fn 'toggleGroupEdit', (e, el) ->
     path = "_page.editing.groups.#{$(el).attr('data-gid')}"

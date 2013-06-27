@@ -79,9 +79,9 @@ module.exports.app = (app, model) ->
 
       # 21-day streak, as per the old philosophy of doign a thing 21-days in a row makes a habit
       if (after % 21) is 0
-        user.pub.incr 'achievements.streak', 1
+        user.pub.increment 'achievements.streak', 1
         $('#streak-achievement-modal').modal('show')
 
       # they're undoing a task at the 21 mark, take back their badge
       else if (before - after is 1) and (before % 21 is 0)
-        user.pub.incr 'achievements.streak', -1
+        user.pub.increment 'achievements.streak', -1
