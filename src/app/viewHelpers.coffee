@@ -25,7 +25,7 @@ taskInChallenge = (task) ->
 module.exports = (view) ->
   #misc
   view.fn "percent", (x, y) ->
-    x=1 if x==0
+    x=1 if x < 1
     Math.round(x/y*100)
   view.fn 'indexOf', (str1, str2) ->
     return false unless str1 && str2

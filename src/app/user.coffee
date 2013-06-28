@@ -80,14 +80,12 @@ module.exports.userAts = (model) ->
   expensive. So here we add our own custom diff requiring a `paths` object to tell where to set
 ###
 module.exports.setDiff = (model, obj, paths, options={}) ->
-  _.defaults options, {pass:{}, cb: ->}
-
   unless obj.pub and obj.priv
     obj = module.exports.transformForDerby obj
 
   # Allows us to still run a post-set callback, even though we're performing many sets
   count = _.size paths
-  done = -> options.cb() if (--count is 0)
+  done = -> options.cb?() if (--count is 0)
 
   ats = module.exports.userAts model
   _.each paths, (v, path) ->
