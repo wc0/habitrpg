@@ -1,3 +1,5 @@
+//mongo habitrpg ./node_modules/lodash/lodash.js migrations/20130620_init_05.js
+
 var un_registered = {
         "auth.local": {$exists: false},
         "auth.facebook": {$exists: false}
@@ -19,6 +21,10 @@ db.users.find(registered).forEach(function(user){
     ['habit','daily','todo','reward'].forEach(function(type){
         user.ids[type + 's'] = user[type + 'Ids'];
     });
+
+    user.tasks = _.transform(user.tasks, function(acc,v,k,obj) {
+        if (!!k && !_.contains(_.keys(v),'$spec')) acc[k] = v;
+    })
 
     var pub = {};
     [
