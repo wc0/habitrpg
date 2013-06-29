@@ -5,65 +5,65 @@ u = require './user.coffee'
 async = require 'async'
 
 ###
-  algos.score wrapper for habitrpg-helpers to work in Derby. We need to do model.set() instead of simply setting the
-  object properties, and it's very difficult to diff the two objects and find dot-separated paths to set. So we to first
-  clone our user object (if we don't do that, it screws with model.on() listeners, ping Tyler for an explaination),
-  perform the updates while tracking paths, then all the values at those paths
-###
-module.exports.score = score = (model, taskId, direction, allowUndo=false) ->
-  [drop, delta, paths] = [undefined, undefined, {}]
-  ats = u.userAts(model)
-  gets = {pub: ats.pub.get(), priv: ats.priv.get()}
-  uobj = u.transformForAPI(gets.pub, gets.priv)
-  tobj = uobj.tasks[taskId]
-
-  # Stuff for undo
-  if allowUndo
-    tbefore = _.cloneDeep tobj
-    async.nextTick ->
-      tbefore.completed = !tbefore.completed if tbefore.type in ['daily', 'todo']
-      previousUndo = model.get('_page.undo')
-      clearTimeout(previousUndo.timeoutId) if previousUndo?.timeoutId
-      timeoutId = setTimeout (-> model.del('_page.undo')), 20000
-      model.set '_page.undo', {stats:_.cloneDeep(uobj.stats), task: tbefore, timeoutId: timeoutId}
-
-  delta = algos.score(uobj, tobj, direction, {paths})
-  model.set('_page.tmp.streakBonus', uobj._tmp.streakBonus) if uobj._tmp?.streakBonus
-  drop = uobj._tmp?.drop
-
-  # Update challenge statistics
-  # FIXME put this in it's own batchTxn, make batchTxn model.at() ref aware (not just _session.user)
-  # FIXME use reflists for users & challenges
-  #    if (chalTask = taskInChallenge.call({model}, tObj)) and chalTask?.get()
-  #      model._dontPersist = false
-  #      chalTask.incr "value", delta
-  #      chal = model.at "groups.#{tObj.group.id}.challenges.#{tObj.challenge}"
-  #      chalUser = -> indexedPath.call({model}, chal.path(), 'users', {id:uObj.id})
-  #      cu = model.at chalUser()
-  #      unless cu?.get()
-  #        chal.push "users", {id: uObj.id, name: helpers.username(uObj.auth, uObj.profile?.name)}
-  #        cu = model.at chalUser()
-  #      else
-  #        cu.set 'name', helpers.username(uObj.auth, uObj.profile?.name) # update their name incase it changed
-  #      cu.set "#{tObj.type}s.#{tObj.id}",
-  #        value: tObj.value
-  #        history: tObj.history
-  #      model._dontPersist = true
-
-  dropCb = ->
-    if drop and $?
-      model.set '_page.tmp.drop', drop
-      $('#item-dropped-modal').modal 'show'
-  u.setDiff model, uobj, paths, {cb: dropCb}
-
-  delta
-
-
-###
   Make scoring functionality available to the app
 ###
 module.exports.app = (app, model) ->
   user = u.userAts(model)
+
+
+  ###
+  algos.score wrapper for habitrpg-helpers to work in Derby. We need to do model.set() instead of simply setting the
+  object properties, and it's very difficult to diff the two objects and find dot-separated paths to set. So we to first
+  clone our user object (if we don't do that, it screws with model.on() listeners, ping Tyler for an explaination),
+  perform the updates while tracking paths, then all the values at those paths
+  ###
+  score = (model, taskId, direction, allowUndo=false) ->
+    [drop, delta, paths] = [undefined, undefined, {}]
+    ats = u.userAts(model)
+    gets = {pub: ats.pub.get(), priv: ats.priv.get()}
+    uobj = u.transformForAPI(gets.pub, gets.priv)
+    tobj = uobj.tasks[taskId]
+
+    # Stuff for undo
+    if allowUndo
+      tbefore = _.cloneDeep tobj
+      async.nextTick ->
+        tbefore.completed = !tbefore.completed if tbefore.type in ['daily', 'todo']
+        previousUndo = model.get('_page.undo')
+        clearTimeout(previousUndo.timeoutId) if previousUndo?.timeoutId
+        timeoutId = setTimeout (-> model.del('_page.undo')), 20000
+        model.set '_page.undo', {stats:_.cloneDeep(uobj.stats), task: tbefore, timeoutId: timeoutId}
+
+    delta = algos.score(uobj, tobj, direction, {paths})
+    model.set('_page.tmp.streakBonus', uobj._tmp.streakBonus) if uobj._tmp?.streakBonus
+    drop = uobj._tmp?.drop
+
+    # Update challenge statistics
+    # FIXME put this in it's own batchTxn, make batchTxn model.at() ref aware (not just _session.user)
+    # FIXME use reflists for users & challenges
+    #    if (chalTask = taskInChallenge.call({model}, tObj)) and chalTask?.get()
+    #      model._dontPersist = false
+    #      chalTask.incr "value", delta
+    #      chal = model.at "groups.#{tObj.group.id}.challenges.#{tObj.challenge}"
+    #      chalUser = -> indexedPath.call({model}, chal.path(), 'users', {id:uObj.id})
+    #      cu = model.at chalUser()
+    #      unless cu?.get()
+    #        chal.push "users", {id: uObj.id, name: helpers.username(uObj.auth, uObj.profile?.name)}
+    #        cu = model.at chalUser()
+    #      else
+    #        cu.set 'name', helpers.username(uObj.auth, uObj.profile?.name) # update their name incase it changed
+    #      cu.set "#{tObj.type}s.#{tObj.id}",
+    #        value: tObj.value
+    #        history: tObj.history
+    #      model._dontPersist = true
+
+    dropCb = ->
+      if drop and $?
+        model.set '_page.tmp.drop', drop
+        $('#item-dropped-modal').modal 'show'
+    u.setDiff model, uobj, paths, {cb: dropCb}
+
+    delta
 
   app.fn 'addTask', (e, el) ->
     type = $(el).attr('data-task-type')
@@ -158,7 +158,7 @@ module.exports.app = (app, model) ->
   app.fn 'score', (e, el) ->
     id = $(el).parents('li').attr('data-id')
     direction = $(el).attr('data-direction')
-    score(model, id, direction, true)
+    score(model, e.at(), direction, true)
 
   ###
     This is how we handle app.score for todos & dailies. Due to Derby's special handling of `checked={:task.completd}`,
@@ -167,7 +167,7 @@ module.exports.app = (app, model) ->
   user.priv.on 'change', 'tasks.*.completed', (i, completed, previous, isLocal, passed) ->
     return if passed?.cron # Don't do this stuff on cron
     direction = if completed then 'up' else 'down'
-    score(model, i, direction, true)
+    score(model, e.at(), direction, true)
 
   ###
     Undo
