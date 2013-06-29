@@ -13,6 +13,19 @@ module.exports.app = (app, model) ->
   user = u.userAts(model)
 
   app.fn 'groupCreate', (e,el) ->
+
+    # count for async purposes - allows us to run multiple racer async ops, and only reload once they're all done
+    count = 1
+    done = -> location.reload() if (--count is 0)
+
+    # Preen empty groups, this way we don't need a migration script to cleanup groups
+    $empty = model.query "groups", {type: 'party', members: $size: 0}
+    $empty.fetch (err) ->
+      return if err
+      empties = $empty.get()
+      count += (empties.length or 0)
+      _.each empties, ((empty) ->model.del("groups.#{empty.id}", done); true)
+
     type = $(el).attr('data-type')
     newGroup =
       name: model.get("_page.new.group.name")
@@ -25,7 +38,7 @@ module.exports.app = (app, model) ->
 
     # parties - free
     if type is 'party'
-      return model.add 'groups', newGroup, ->location.reload()
+      return model.add 'groups', newGroup, done
 
     # guilds - 4G
     unless user.priv.get('balance') >= 1
@@ -34,7 +47,7 @@ module.exports.app = (app, model) ->
       newGroup.privacy = (model.get("_page.new.group.privacy") || 'public') if type is 'guild'
       newGroup.balance = 1 # they spent $ to open the guild, it goes into their guild bank
       model.add 'groups', newGroup, ->
-        user.priv.increment 'balance', -1, ->location.reload()
+        user.priv.increment 'balance', -1, done
 
   app.fn 'toggleGroupEdit', (e, el) ->
     path = "_page.editing.groups.#{$(el).attr('data-gid')}"
