@@ -185,9 +185,9 @@ googleAnalytics = (model) ->
     $.getScript ((if "https:" is document.location.protocol then "https://ssl" else "http://www")) + ".google-analytics.com/ga.js"
 
 amazonAffiliate = (model) ->
-  if model.get('_session.loggedIn') and (model.get('_page.user.priv.flags.ads') != 'hide')
-    $.getScript('//wms.assoc-amazon.com/20070822/US/js/link-enhancer-common.js?tag=ha0d2-20').fail ->
-      $('body').append('<img src="//wms.assoc-amazon.com/20070822/US/img/noscript.gif?tag=ha0d2-20" alt="" />')
+#  if model.get('_page.user.priv.flags.ads') isnt 'hide'
+#    $.getScript '//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js'
+#    (window.adsbygoogle ?= []).push({})
 
 googleCharts = ->
   $.getScript "//www.google.com/jsapi", ->
