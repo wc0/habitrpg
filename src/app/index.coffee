@@ -159,6 +159,7 @@ app.ready (model) ->
     uobj = u.transformForAPI model.get('_page.user.pub'), model.get('_page.user.priv')
     paths = {}
     algos.cron uobj, {paths}
+    u.preenHistory uobj, {paths}
     if _.size(paths) > 0
       if (delete paths['stats.hp'])? # we'll set this manually so we can get a cool animation
         hp = uobj.stats.hp

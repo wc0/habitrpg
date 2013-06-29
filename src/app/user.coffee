@@ -95,6 +95,60 @@ module.exports.setDiff = (model, obj, paths, options={}) ->
     true
 
 
+###
+  ------------------------------------------------------------------------------
+  Preening Functions
+  ------------------------------------------------------------------------------
+###
 
 
+###
+Preen history for users with > 7 history entries
+This takes an infinite array of single day entries [day day day day day...], and turns it into a condensed array
+of averages, condensing more the further back in time we go. Eg, 7 entries each for last 7 days; 4 entries for last
+4 weeks; 12 entries for last 12 months; 1 entry per year before that: [day*7 week*4 month*12 year*infinite]
+###
+preenHistory = (history) ->
+  history = _.filter history, ((h) -> !!h) # discard nulls (corrupted somehow)
+  preen = (amount, groupBy) ->
+    groups = undefined
+    avg = undefined
+    start = undefined
 
+    groups = _(history)
+      .groupBy((h) -> moment(h.date).format groupBy) # get date groupings to average against
+      .sortBy((h, k) -> k) # sort by date
+      .value() # turn into an array
+    amount++ # if we want the last 4 weeks, we're going 4 weeks back excluding this week. so +1 to account for exclusion
+    start = (if (groups.length - amount > 0) then groups.length - amount else 0)
+    groups = groups.slice(start, groups.length - 1)
+    _.each groups, (group) ->
+      avg = _.reduce(group, (mem, obj) ->
+        mem + obj.value
+      , 0) / group.length
+      newHistory.push
+        date: +moment(group[0].date)
+        value: avg
+
+  newHistory = []
+  preen 50, "YYYY" # last 50 years
+  preen 12, "YYYYMM" # last 12 months
+  preen 4, "YYYYww" # last 4 weeks
+  newHistory = newHistory.concat(history.slice(-7)) # last 7 days
+  newHistory
+
+minHistLen = 7
+module.exports.preenHistory = (uobj, options) ->
+  paths = options?.paths or {}
+
+  _.each uobj.tasks, (task) ->
+    if task.history?.length > minHistLen
+      task.history = preenHistory(task.history)
+      paths["tasks.#{task.id}.history"] = true
+
+  if uobj.history?.exp?.length > minHistLen
+    uobj.history.exp = preenHistory(uobj.history.exp)
+    paths['history.exp'] = true
+  if uobj.history?.todos?.length > minHistLen
+    uobj.history.todos = preenHistory(uobj.history.todos)
+    paths['history.todos'] = true
