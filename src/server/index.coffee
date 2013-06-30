@@ -44,6 +44,10 @@ store = derby.createStore(
   redis: redis
 )
 
+# Expose stuff to test suite which we wouldn't want exposed to production app
+if nconf.get('NODE_ENV')
+  module.exports.store = store
+
 store.on 'bundle', (browserify) ->
   vendorScripts = [
     "jquery-ui-1.10.2/jquery-1.9.1"

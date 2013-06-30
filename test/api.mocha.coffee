@@ -6,7 +6,7 @@ require 'racer'
 
 path = require 'path'
 conf = require("nconf")
-conf.argv().env().file(path.join(__dirname + '/../config.json'))
+conf.argv().env().file(path.join(__dirname + '/../config.json')).defaults "NODE_ENV": 'test'
 
 ## monkey-patch expect.js for better diffs on mocha
 ## see: https://github.com/LearnBoost/expect.js/pull/34
@@ -38,7 +38,7 @@ describe 'API', ->
   before (done) ->
     server = require '../src/server/index.coffee'
     server.listen '1337', '0.0.0.0', null, ->
-      store = server.habitStore
+      store = server.store
       #store.flush()
       model = store.createModel()
       server.registerCallback {getModel: (->model)}, null, {id:model.id()}, done
