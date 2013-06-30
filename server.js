@@ -1,6 +1,7 @@
 var nodemailer = require("nodemailer");
 
 // Load nconf and define default configuration values if config.json or ENV vars are not found
+var path = require('path')
 var conf = require('nconf');
 conf.argv().env().file(path.join(__dirname + "/config.json")).defaults({
    'PORT': 3000,
