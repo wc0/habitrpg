@@ -3,6 +3,7 @@ request = require 'superagent'
 expect = require 'expect.js'
 require 'coffee-script'
 require 'racer'
+u = require '../src/app/user.coffee'
 
 path = require 'path'
 conf = require("nconf")
@@ -32,7 +33,7 @@ describe 'API', ->
   server = null
   store = null
   model = null
-  user = null
+  ats = null
   uid = null
 
   before (done) ->
@@ -41,7 +42,8 @@ describe 'API', ->
       store = server.store
       #store.flush()
       model = store.createModel()
-      server.registerCallback {getModel: (->model)}, null, {id:model.id()}, done
+      uid = model.id()
+      server.registerCallback {getModel: (->model)}, null, {id:uid}, done
 
   describe 'Without token or user id', ->
 
@@ -65,16 +67,24 @@ describe 'API', ->
     params = null
     currentUser = null
 
-    before ->
-      user = model.at("users.#{uid}")
-      currentUser = user.get()
+    getCurrentUser = (done) ->
+      $pub = model.at "usersPublic.#{uid}"
+      $priv = model.at "usersPrivate.#{uid}"
+      model.fetch $pub, $priv, (err) ->
+        throw err if err
+        ats = $pub: $pub, $priv: $priv
+        currentUser = u.transformForAPI $pub.get(), $priv.get()
+        done()
+
+    before (done) ->
       params =
         title: 'Title'
         text: 'Text'
         type: 'habit'
+      getCurrentUser done
 
-    beforeEach ->
-      currentUser = user.get()
+    beforeEach (done) ->
+      getCurrentUser(done)
 
     it 'GET /api/v1/user', (done) ->
       request.get("#{baseURL}/user")
@@ -112,13 +122,13 @@ describe 'API', ->
         .set('X-API-Key', currentUser.apiToken)
         .send(params)
         .end (res) ->
-          query = model.query('users').withIdAndToken(currentUser.id, currentUser.apiToken)
-          query.fetch (err, user) ->
+          $q = model.at "usersPrivate.#{currentUser.id}"
+          $q.fetch (err) ->
             expect(res.body.err).to.be undefined
             expect(res.statusCode).to.be 201
             expect(res.body.id).not.to.be.empty()
             # Ensure that user owns the newly created object
-            expect(user.get().tasks[res.body.id]).to.be.an('object')
+            expect($q.get().tasks[res.body.id]).to.be.an('object')
             done()
 
     it 'POST /api/v1/user/task (without type)', (done) ->
@@ -139,15 +149,15 @@ describe 'API', ->
         .set('X-API-Key', currentUser.apiToken)
         .send(type: 'habit')
         .end (res) ->
-          query = model.query('users').withIdAndToken(currentUser.id, currentUser.apiToken)
-          query.fetch (err, user) ->
+          $q = model.at "usersPrivate.#{currentUser.id}"
+          $q.fetch (err) ->
             expect(res.body.err).to.be undefined
             expect(res.statusCode).to.be 201
             expect(res.body.id).not.to.be.empty()
             # Ensure that user owns the newly created object
-            expect(user.get().tasks[res.body.id]).to.be.an('object')
+            expect($q.get().tasks[res.body.id]).to.be.an('object')
             # Ensure that value gets set to 0 since not otherwise specified
-            expect(user.get().tasks[res.body.id].value).to.be.equal(0)
+            expect($q.get().tasks[res.body.id].value).to.be.equal(0)
             done()
 
     it 'PUT /api/v1/user/task/:id', (done) ->
@@ -200,15 +210,11 @@ describe 'API', ->
         .set('X-API-User', currentUser.id)
         .set('X-API-Key', currentUser.apiToken)
         .end (res) ->
-          query = model.query('users').withIdAndToken(currentUser.id, currentUser.apiToken)
-          query.fetch (err, user) ->
+          $q = model.at "usersPrivate.#{currentUser.id}"
+          $q.fetch (err) ->
             expect(res.body.err).to.be undefined
             expect(res.statusCode).to.be 200
-            model.ref '_user', user
-            tasks = []
-            for type in ['habit','todo','daily','reward']
-              model.refList "_#{type}List", "_user.tasks", "_user.#{type}Ids"
-              tasks = tasks.concat model.get("_#{type}List")
+            tasks = _.toArray $q.get().tasks
             # Ensure that user owns the tasks
             expect(res.body.length).to.equal tasks.length
             # Ensure that the two sets are equal
@@ -222,21 +228,19 @@ describe 'API', ->
         .set('X-API-Key', currentUser.apiToken)
         .query(type:'todo')
         .end (res) ->
-          query = model.query('users').withIdAndToken(currentUser.id, currentUser.apiToken)
-          query.fetch (err, user) ->
+          $q = model.at "usersPrivate.#{currentUser.id}"
+          $q.fetch (err) ->
             expect(res.body.err).to.be undefined
             expect(res.statusCode).to.be 200
-            model.ref '_user', user
-            model.refList "_todoList", "_user.tasks", "_user.todoIds"
-            tasks = model.get("_todoList")
+            ids = $q.get('ids.todos')
             # Ensure that user owns the tasks
-            expect(res.body.length).to.equal tasks.length
+            expect(res.body.length).to.equal ids.length
             # Ensure that the two sets are equal
-            expect(_.difference(_.pluck(res.body,'id'), _.pluck(tasks,'id')).length).to.equal 0
+            expect(_.difference(_.pluck(res.body,'id'), ids).length).to.equal 0
             done()
 
     it 'DELETE /api/v1/user/task/:id', (done) ->
-      tid = currentUser.habitIds[2]
+      tid = currentUser.ids.habits[2]
       request.del("#{baseURL}/user/task/#{tid}")
         .set('Accept', 'application/json')
         .set('X-API-User', currentUser.id)
@@ -244,10 +248,10 @@ describe 'API', ->
         .end (res) ->
           expect(res.body.err).to.be undefined
           expect(res.statusCode).to.be 204
-          query = model.query('users').withIdAndToken(currentUser.id, currentUser.apiToken)
-          query.fetch (err, user) ->
-            expect(user.get('habitIds').indexOf(tid)).to.be -1
-            expect(user.get("tasks.#{tid}")).to.be undefined
+          $q = model.at "usersPrivate.#{currentUser.id}"
+          $q.fetch (err) ->
+            expect($q.get().ids.habits.indexOf(tid)).to.be -1
+            expect($q.get().tasks[tid]).to.be undefined
             done()
 
     it 'DELETE /api/v1/user/task/:id (no task found)', (done) ->
@@ -262,7 +266,7 @@ describe 'API', ->
           done()
 
     it 'POST /api/v1/user/task/:id/up (habit)', (done) ->
-      tid = currentUser.habitIds[0]
+      tid = currentUser.ids.habits[0]
       request.post("#{baseURL}/user/task/#{tid}/up")
         .set('Accept', 'application/json')
         .set('X-API-User', currentUser.id)
@@ -275,7 +279,7 @@ describe 'API', ->
           done()
 
     it 'POST /api/v1/user/task/:id/up (daily)', (done) ->
-      tid = currentUser.dailyIds[0]
+      tid = currentUser.ids.dailys[0]
       request.post("#{baseURL}/user/task/#{tid}/up")
         .set('Accept', 'application/json')
         .set('X-API-User', currentUser.id)
@@ -285,14 +289,14 @@ describe 'API', ->
           expect(res.body.err).to.be undefined
           expect(res.statusCode).to.be 200
           expect(res.body).to.eql { gp: 2, exp: 15, lvl: 1, hp: 50, delta: 1 }
-          query = model.query('users').withIdAndToken(currentUser.id, currentUser.apiToken)
-          query.fetch (err, user) ->
-            expect(user.get("tasks.#{tid}.completed")).to.be true
+          $q = model.at "usersPrivate.#{currentUser.id}"
+          $q.fetch (err) ->
+            expect($q.get().tasks[tid].completed).to.be true
             done()
 
     it 'POST /api/v1/user/task (array)', (done) ->
-      habitId = currentUser.habitIds[0]
-      dailyId = currentUser.dailyIds[0]
+      habitId = currentUser.ids.habits[0]
+      dailyId = currentUser.ids.dailys[0]
       arr = [{
         id: habitId
         text: 'hello'
@@ -319,20 +323,20 @@ describe 'API', ->
           expect(res.body[1].notes).to.be 'notes!'
           expect(res.body[2]).to.eql deleted: true
 
-          query = model.query('users').withIdAndToken(currentUser.id, currentUser.apiToken)
-          query.fetch (err, user) ->
-            expect(user.get("tasks.#{habitId}")).to.eql {id: habitId,text: 'hello',notes: 'note'}
-            expect(user.get("tasks.#{dailyId}")).to.be undefined
-            expect(user.get("tasks.#{res.body[1].id}")).to.eql id: res.body[1].id, text: 'new task', notes: 'notes!'
+          $q = model.at "usersPrivate.#{currentUser.id}"
+          $q.fetch (err) ->
+            expect($q.get().tasks[habitId]).to.eql {id: habitId,text: 'hello',notes: 'note'}
+            expect($q.get().tasks[dailyId]).to.be undefined
+            expect($q.get().tasks[res.body[1].id]).to.eql id: res.body[1].id, text: 'new task', notes: 'notes!'
             done()
 
     it 'PUT /api/v1/user', (done) ->
       userBefore = {}
-      query = model.query('users').withIdAndToken(currentUser.id, currentUser.apiToken)
-      query.fetch (err, user) -> userBefore = user.get()
+      $q = model.at "usersPrivate.#{currentUser.id}"
+      $q.fetch (err) -> userBefore = $q.get()
 
-      habitId = currentUser.habitIds[0]
-      dailyId = currentUser.dailyIds[0]
+      habitId = currentUser.ids.habits[0]
+      dailyId = currentUser.ids.dailys[0]
       userUpdates =
         stats:
           hp: 30
