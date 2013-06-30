@@ -167,7 +167,7 @@ module.exports.app = (app, model) ->
   user.priv.on 'change', 'tasks.*.completed', (i, completed, previous, isLocal, passed) ->
     return if passed?.cron # Don't do this stuff on cron
     direction = if completed then 'up' else 'down'
-    score(model, e.get('id'), direction, true)
+    score(model, i, direction, true)
 
   ###
     Undo
