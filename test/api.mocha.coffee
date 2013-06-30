@@ -2,16 +2,11 @@ _ = require 'lodash'
 request = require 'superagent'
 expect = require 'expect.js'
 require 'coffee-script'
+require 'racer'
 
+path = require 'path'
 conf = require("nconf")
-conf.argv().env().file({file: __dirname + '../config.json'}).defaults
-
-# Override normal ENV values with nconf ENV values (ENV values are used the same way without nconf)
-#FIXME can't get nconf file above to load...
-process.env.BASE_URL = conf.get("BASE_URL")
-process.env.FACEBOOK_KEY = conf.get("FACEBOOK_KEY")
-process.env.FACEBOOK_SECRET = conf.get("FACEBOOK_SECRET")
-process.env.NODE_DB_URI = 'mongodb://localhost/habitrpg'
+conf.argv().env().file(path.join(__dirname + '/../config.json'))
 
 ## monkey-patch expect.js for better diffs on mocha
 ## see: https://github.com/LearnBoost/expect.js/pull/34
@@ -41,20 +36,12 @@ describe 'API', ->
   uid = null
 
   before (done) ->
-    server = require '../src/server'
-    server.listen '1337', '0.0.0.0'
-    server.on 'listening', (data) ->
+    server = require '../src/server/index.coffee'
+    server.listen '1337', '0.0.0.0', null, ->
       store = server.habitStore
       #store.flush()
       model = store.createModel()
-      model.set '_userId', uid = model.id()
-      user = helpers.newUser(true)
-      user.apiToken = model.id()
-      model.session = {userId:uid}
-      model.set "users.#{uid}", user
-      delete model.session
-      # Crappy hack to let server start before tests run
-      setTimeout done, 2000
+      server.registerCallback {getModel: (->model)}, null, {id:model.id()}, done
 
   describe 'Without token or user id', ->
 

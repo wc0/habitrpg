@@ -110,8 +110,8 @@ validateTask = (req, res, next) ->
 
   # If we're updating, get the task from the user
   if req.method is 'PUT' or req.method is 'DELETE'
-    task = req.userObj?.tasks[req.params.id]
-    return res.json 400, err: "No task found." if !task || _.isEmpty(task)
+    task = req.ats.$priv.get(req.params.id)
+    return res.json 400, err: "No task found." if _.isEmpty(task)
     # Strip for now
     type = undefined
     delete newTask.type
@@ -139,47 +139,46 @@ validateTask = (req, res, next) ->
   PUT /user/task/:id
 ###
 router.put '/user/task/:id', auth, validateTask, (req, res) ->
-  req.user.set "tasks.#{req.task.id}", req.task
-
+  req.ats.$priv.set "tasks.#{req.task.id}", req.task
   res.json 200, req.task
 
 ###
   DELETE /user/task/:id
 ###
 router.delete '/user/task/:id', auth, validateTask, (req, res) ->
-  taskIds = req.user.get "#{req.task.type}Ids"
+  taskIds = req.ats.$priv.get "ids.#{req.task.type}s"
 
-  req.user.del "tasks.#{req.task.id}"
+  req.ats.$priv.del "tasks.#{req.task.id}"
   # Remove one id from array of typeIds
-  req.user.remove "#{req.task.type}Ids", taskIds.indexOf(req.task.id), 1
+  req.ats.$priv.remove "ids.#{req.task.type}s", taskIds.indexOf(req.task.id), 1
 
   res.send 204
 
 ###
   POST /user/tasks
 ###
-updateTasks = (tasks, user, model) ->
+updateTasks = (tasks, req) ->
+  {uobj, ats}
   for idx, task of tasks
     if task.id
       if task.del
-        user.del "tasks.#{task.id}"
+        ats.$priv.del "tasks.#{task.id}"
         if task.type # TODO we should enforce they pass in type, so we can properly remove from idList
-          if (i = _.findIndex user.get("#{task.type}Ids"), {id: task.id}) != -1
-            user.remove("#{task.type}Ids", i, 1) # doens't work when task.type isn't passed up
+          if (i = _.findIndex ats.$priv.get("ids.#{task.type}s"), {id: task.id}) != -1
+            ats.$priv.remove("ids.#{task.type}s", i, 1) # doens't work when task.type isn't passed up
         task = deleted: true
       else
-        user.set "tasks.#{task.id}", task
+        ats.$priv.set "tasks.#{task.id}", task
     else
-      type = task.type || 'habit'
-      user.set "tasks.#{task.id}", task
-      user.push "ids.#{type}s", task.id
+      type = task.type or 'habit'
+      ats.$priv.set "tasks.#{task.id}", task
+      ats.$priv.push "ids.#{type}s", task.id
     tasks[idx] = task
   return tasks
 
 router.post '/user/tasks', auth, (req, res) ->
-  tasks = updateTasks req.body, req.user, req.getModel()
+  tasks = updateTasks req.body, req
   res.json 201, tasks
-
 
 ###
   POST /user/task/
@@ -188,9 +187,8 @@ router.post '/user/task', auth, validateTask, (req, res) ->
   task = req.task
   type = task.type
 
-  model = req.getModel()
-  user.set "tasks.#{task.id}", task
-  user.push "ids.#{type}s", task.id
+  req.ats.$priv.set "tasks.#{task.id}", task
+  req.ats.$priv.push "ids.#{type}s", task.id
 
   res.json 201, task
 
@@ -198,20 +196,13 @@ router.post '/user/task', auth, validateTask, (req, res) ->
   GET /user/tasks
 ###
 router.get '/user/tasks', auth, (req, res) ->
-  user = req.userObj
-  return res.json 400, NO_USER_FOUND if !user || _.isEmpty(user)
+  {uobj} = req
+  return res.json 400, NO_USER_FOUND if _.isEmpty(uobj)
 
-  model = req.getModel()
-  model.ref '_session.user', req.user
-  tasks = []
-  types = ['habit','todo','daily','reward']
-  if /^(habit|todo|daily|reward)$/.test req.query.type
-    types = [req.query.type]
-  for type in types
-    model.refList "_page.#{type}List", "_session.user.tasks", "_session.user.ids.#{type}s"
-    tasks = tasks.concat model.get("_page.#{type}List")
+  types = if /^(habit|todo|daily|reward)$/.test(req.query.type) then [req.query.type]
+  else ['habit','todo','daily','reward']
 
-  res.json 200, tasks
+  res.json 200, _.toArray req.ats.$priv.get('tasks'), ((t) ->t.type in types)
 
 ###
   This is called form deprecated.coffee's score function, and the req.headers are setup properly to handle the login
@@ -219,18 +210,15 @@ router.get '/user/tasks', auth, (req, res) ->
 scoreTask = (req, res, next) ->
   {taskId, direction} = req.params
   {title, service, icon, type} = req.body
-  type ||= 'habit'
+  type ?= 'habit'
 
   # Send error responses for improper API call
   return res.send(500, ':taskId required') unless taskId
   return res.send(500, ":direction must be 'up' or 'down'") unless direction in ['up','down']
 
-  model = req.getModel()
-  {user, userObj} = req
+  {ats, uobj} = req
 
-  model.ref('_session.user', user)
-
-  existingTask = model.at "_session.user.tasks.#{taskId}"
+  existingTask = ats.$priv.at "tasks.#{taskId}"
   # TODO add service & icon to task
   # If task exists, set it's compltion
   if existingTask.get()
@@ -251,14 +239,17 @@ scoreTask = (req, res, next) ->
       when 'daily', 'todo'
         task.completed = direction is 'up'
 
-    model.refList "_page.#{type}List", "_session.user.tasks", "_session.user.ids.#{type}s"
-    model.at("_page.#{type}List").push task
+    ats.$priv.add "tasks", task
+    ats.$priv.push "ids.#{type}", task.id
 
-  #FIXME
-  delta = tasks.score(model, taskId, direction)
-  result = model.get '_session.user.stats'
-  result.delta = delta
-  res.json result
+  paths = {}
+  tobj = _.where uobj.habits.concat(uobj.todos.concat(uobj.dailys.concat(uobj.rewards))), {id:taskId}
+  console.log {uobj, tobj}
+  delta = algos.score(req.uobj, tobj, direction, {paths})
+  u.setDiff req.getModel(), req.uobj, paths, cb: ->
+    result = ats.$pub.get('stats')
+    result.delta = delta
+    res.json result
 
 ###
   POST /user/tasks/:taskId/:direction

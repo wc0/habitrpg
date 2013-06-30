@@ -38,7 +38,8 @@
   "devDependencies": {
     "expect.js": "~0.2.0",
     "optimist": "~0.5.2",
-    "superagent": "~0.12.4"
+    "superagent": "~0.12.4",
+    "mocha": "*"
   },
   "private": true,
   "subdomain": "habitrpg",

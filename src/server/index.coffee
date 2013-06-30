@@ -66,27 +66,32 @@ store.on 'bundle', (browserify) ->
   browserify.transform coffeeify
 
 # Authentication setup
+
+#Save new user in usersPublic & usersPrivate after derby-auth has saved to `auths` collection
+module.exports.registerCallback = (req, res, auth, next) ->
+  u = require('../app/user.coffee')
+  model = req.getModel()
+  uobj = u.transformForDerby helpers.newUser()
+  uobj.priv.id = uobj.pub.id = auth.id
+  uobj.pub.profile = name: helpers.usernameCandidates(auth)
+  model.add "usersPublic", uobj.pub, (err) ->
+    return next(err) if err
+    model.add "usersPrivate", uobj.priv, (err) ->
+      return next(err) if err
+      next()
+
 strategies =
   facebook:
     strategy: require("passport-facebook").Strategy
     conf:
       clientID: nconf.get('FACEBOOK_KEY')
       clientSecret: nconf.get('FACEBOOK_SECRET')
+
 options =
   site:
     domain: nconf.get('BASE_URL')
   passport:
-    registerCallback: (req, res, auth, next) ->
-      u = require('../app/user.coffee')
-      model = req.getModel()
-      uobj = u.transformForDerby helpers.newUser()
-      uobj.priv.id = uobj.pub.id = auth.id
-      uobj.pub.profile = name: helpers.usernameCandidates(auth)
-      model.add "usersPublic", uobj.pub, (err) ->
-        return next(err) if err
-        model.add "usersPrivate", uobj.priv, (err) ->
-          return next(err) if err
-          next()
+    registerCallback: registerCallback: module.exports.registerCallback
 
 # This has to happen before our middleware stuff
 auth.store(store, mongo, strategies)
