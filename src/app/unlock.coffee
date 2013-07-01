@@ -70,7 +70,7 @@ module.exports.app = (app, model) ->
   user.pub.on 'change', 'items.*', (after, before) ->
     return if user.pub.get('achievements.ultimateGear')
     items = user.pub.get('items')
-    if parseInt(items.weapon) >= 6 and parseInt(items.armor) >= 5 and parseInt(items.head) >= 5 and parseInt(items.shield) >= 5
+    if +items.weapon >= 6 and +items.armor >= 5 and +items.head >= 5 and +items.shield >= 5
       user.pub.set 'achievements.ultimateGear', true
       $('#max-gear-achievement-modal').modal('show')
 

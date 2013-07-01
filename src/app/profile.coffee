@@ -15,7 +15,7 @@ module.exports.app = (app, model) ->
     loseThisItem = false
     owned = uobj.items
     # unless they're already at 0-everything
-    if parseInt(owned.armor)>0 or parseInt(owned.head)>0 or parseInt(owned.shield)>0 or parseInt(owned.weapon)>0
+    if +owned.armor > 0 or +owned.head > 0 or +owned.shield > 0 or +owned.weapon > 0
       # find a random item to lose
       until loseThisItem
         #candidate = {0:'items.armor', 1:'items.head', 2:'items.shield', 3:'items.weapon', 4:'stats.gp'}[Math.random()*5|0]
@@ -44,7 +44,7 @@ module.exports.app = (app, model) ->
 
   app.fn 'restoreSave', ->
     $('#restore-form input').each ->
-      [path, val] = [$(this).attr('data-for'), parseInt($(this).val() || 1)]
+      [path, val] = [$(this).attr('data-for'), +$(this).val() || 1]
       user.pub.set(path,val)
 
   app.fn 'toggleHeader', (e, el) ->

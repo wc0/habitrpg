@@ -33,13 +33,13 @@ module.exports = (view) ->
   view.fn "round", Math.round
   view.fn "floor", Math.floor
   view.fn "ceil", Math.ceil
-  view.fn "mod", (a, b) -> parseInt(a) % parseInt(b) == 0
+  view.fn "mod", (a, b) -> +a % +b == 0
   view.fn "notEqual", (a, b) -> (a != b)
   view.fn "truarr", (num) -> num-1
   view.fn 'count', (arr) -> arr?.length or 0
   view.fn 'int',
     get: (num) -> num
-    set: (num) -> [parseInt(num)]
+    set: (num) -> [+num]
   view.fn 'indexedPath', indexedPath
 
   ## Added to Derby core

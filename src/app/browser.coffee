@@ -164,7 +164,7 @@ setupGrowlNotifications = (model) ->
       model.del('_page.tmp.streakBonus')
 
   uPub.on 'change', 'items.*', (item, after, before) ->
-    if item in ['armor','weapon','shield','head'] and parseInt(after) < parseInt(before)
+    if item in ['armor','weapon','shield','head'] and +after < +before
       item = 'helm' if item is 'head' # don't want to day "lost a head"
       statsNotification "<i class='icon-death'></i> Respawn!", "death"
 
