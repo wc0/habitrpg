@@ -1,51 +1,43 @@
 _ = require 'lodash'
 {items, helpers} = require 'habitrpg-shared'
-{ randomVal } = helpers
-{ pets, hatchingPotions } = items.items
 
 ###
   app exports
 ###
 module.exports.app = (app) ->
-  {model} = app
+
+  initDraggable = (model) ->
+    myItems = model.at('_page.user.pub.items')
+    $('.hatching-potion-draggable').draggable()
+    $('.egg-droppable').droppable
+      revert: 'invalid'
+      accept: ".hatching-potion-draggable"
+      activeClass: "ui-state-hover"
+      hoverClass: "ui-state-active"
+      drop: ( event, ui ) ->
+        [eggIdx, potIdx] = [$(event.target).attr('data-index'), $(ui.draggable[0]).attr('data-index')]
+        potion = myItems.get "hatchingPotions.#{potIdx}"
+        egg = myItems.get "eggs.#{eggIdx}"
+        pets = myItems.get "pets"
+
+        if pets and ~pets.indexOf("#{egg.name}-#{potion}")
+          return model.set("_page.errors.pets", "You already have that pet, hatch a different combo.")
+        return unless confirm("Hatch a(n) #{potion} #{egg.name}?") is true
+
+        myItems.push 'pets', "#{egg.name}-#{potion}", ->
+          myItems.remove "eggs", eggIdx, 1
+          myItems.remove "hatchingPotions", potIdx, 1
+          $(event.target).remove(); $(ui.draggable[0]).remove()
+          model.set "_page.errors.pets", "Your egg hatched! Visit your stable to equip your pet."
+          #DERBY.app.view.render model, {}
+          $('#profile-stable').tab('show')
+
+  app.model.on 'insert', '_page.user.pub.items.hatchingPotions', ->initDraggable(app.model)
+  app.model.on 'insert', '_page.user.pub.items.eggs', ->initDraggable(app.model)
+  app.on 'render', ->initDraggable(app.model)
 
   app.fn
     pets:
-
-      ###
-        Choose Egg
-      ###
-      chooseEgg: (e, el) ->
-        @model.ref '_page.pets.hatchEgg', e.at()
-
-      ###
-        Hatch Egg
-      ###
-      hatchEgg: (e, el) ->
-        hatchingPotionName = $(el).children('select').val()
-        myHatchingPotion = @pub.get 'items.hatchingPotions'
-        egg = @model.get '_page.pets.hatchEgg'
-        eggs = @pub.get 'items.eggs'
-        myPets = @pub.get 'items.pets'
-
-        hatchingPotionIdx = myHatchingPotion.indexOf hatchingPotionName
-        eggIdx = eggs.indexOf egg
-
-        return alert "You don't own that hatching potion yet, complete more tasks!" if hatchingPotionIdx is -1
-        return alert "You don't own that egg yet, complete more tasks!" if eggIdx is -1
-        return alert "You already have that pet, hatch a different combo." if myPets and myPets.indexOf("#{egg.name}-#{hatchingPotionName}") != -1
-
-        @pub.push 'items.pets', egg.name + '-' + hatchingPotionName, =>
-          eggs.splice eggIdx, 1
-          myHatchingPotion.splice hatchingPotionIdx, 1
-          @pub.set 'items.eggs', eggs
-          @pub.set 'items.hatchingPotions', myHatchingPotion
-
-        alert 'Your egg hatched! Visit your stable to equip your pet.'
-
-        #FIXME Bug: this removes from the array properly in the browser, but on refresh is has removed all items from the arrays
-        #user.remove 'items.hatchingPotions', hatchingPotionIdx, 1
-        #user.remove 'items.eggs', eggIdx, 1
 
       ###
         Choose Pet
@@ -53,12 +45,12 @@ module.exports.app = (app) ->
       choosePet: (e, el, next) ->
         petStr = $(el).attr('data-pet')
 
-        return next() if @pub.get('items.pets').indexOf(petStr) == -1
+        return next() unless ~@pub.get('items.pets').indexOf(petStr)
         # If user's pet is already active, deselect it
         return @pub.set 'items.currentPet', {} if @pub.get('items.currentPet.str') is petStr
 
         [name, modifier] = petStr.split('-')
-        pet = _.find pets, {name: name}
+        pet = _.find items.items.pets, {name}
         pet.modifier = modifier
         pet.str = petStr
         @pub.set 'items.currentPet', pet
@@ -68,7 +60,7 @@ module.exports.app = (app) ->
       ###
       buyHatchingPotion: (e, el) ->
         name = $(el).attr 'data-hatchingPotion'
-        newHatchingPotion = _.find hatchingPotions, {name: name}
+        newHatchingPotion = _.find items.items.hatchingPotions, {name: name}
         gems = @priv.get('balance') * 4
         if gems >= newHatchingPotion.value
           if confirm "Buy this hatching potion with #{newHatchingPotion.value} of your #{gems} Gems?"
@@ -82,7 +74,7 @@ module.exports.app = (app) ->
       ###
       buyEgg: (e, el) ->
         name = $(el).attr 'data-egg'
-        newEgg = _.find pets, {name: name}
+        newEgg = _.find items.items.pets, {name}
         gems = @priv.get('balance') * 4
         if gems >= newEgg.value
           if confirm "Buy this egg with #{newEgg.value} of your #{gems} Gems?"
