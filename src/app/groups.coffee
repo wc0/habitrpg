@@ -2,8 +2,8 @@ _ = require('lodash')
 {helpers} = require('habitrpg-shared')
 u = require './user.coffee'
 
-module.exports.app = (app, model) ->
-  browser = require './browser.coffee'
+module.exports.app = (app) ->
+  {model} = app
 
   currentTime = model.at '_page.currentTime'
   currentTime.setNull +new Date
@@ -21,7 +21,7 @@ module.exports.app = (app, model) ->
     # Preen empty groups, this way we don't need a migration script to cleanup groups
     $empty = model.query "groups", {type: 'party', members: $size: 0}
     $empty.fetch (err) ->
-      return if err
+      console.error(err) if err
       empties = $empty.get()
       count += (empties.length or 0)
       _.each empties, ((empty) ->model.del("groups.#{empty.id}", done); true)
@@ -112,7 +112,7 @@ module.exports.app = (app, model) ->
       e.at().remove ->joinGroup(gid)
 
   app.fn 'rejectInvitation', (e, el) ->
-    clear = -> browser.resetDom(model)
+    clear = -> app.resetDom()
     if e.at().path().indexOf('party') != -1
       model.del e.at().path(), clear
     else e.at().remove clear
@@ -188,4 +188,4 @@ module.exports.app = (app, model) ->
   app.fn 'assignGroupLeader', (e, el) ->
     newLeader = model.get('_page.new.groupLeader')
     if newLeader and (confirm("Assign new leader, you sure?") is true)
-      e.at().set('leader', newLeader, ->browser.resetDom(model)) if newLeader
+      e.at().set('leader', newLeader, ->app.resetDom()) if newLeader

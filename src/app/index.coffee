@@ -129,44 +129,33 @@ app.get '/', (page, model, params, next) ->
 # ========== CONTROLLER FUNCTIONS ==========
 
 app.ready (model) ->
-  u = require './user.coffee'
-  user = u.userAts(model)
+  @pub = model.at "_page.user.pub"
+  @priv = model.at "_page.user.priv"
+  @uid = @pub.get()
 
-  browser = require './browser.coffee'
-  require('./tasks.coffee').app(app, model)
-  require('./items.coffee').app(app, model)
-  require('./groups.coffee').app(app, model)
-  require('./profile.coffee').app(app, model)
-  require('./pets.coffee').app(app, model)
-  require('../server/private.coffee').app(app, model)
-  require('./debug.coffee').app(app, model) unless model.get('_session.flags.nodeEnv') is 'production'
-  browser.app(app, model)
-  require('./unlock.coffee').app(app, model)
-  require('./filters.coffee').app(app, model)
-  #require('./challenges.coffee').app(app, model)
+  require('./user.coffee').app(app)
+  require('./tasks.coffee').app(app)
+  require('./items.coffee').app(app)
+  require('./groups.coffee').app(app)
+  require('./profile.coffee').app(app)
+  require('./pets.coffee').app(app)
+  require('../server/private.coffee').app(app)
+  require('./browser.coffee').app(app)
+  require('./unlock.coffee').app(app)
+  require('./filters.coffee').app(app)
+  require('./challenges.coffee').app(app)
+  require('./debug.coffee').app(app) unless model.get('_session.flags.nodeEnv') is 'production'
 
-  # used for things like remove website, chat, etc
-  app.fn 'removeAt', (e, el) ->
-    if (confirmMessage = $(el).attr 'data-confirm')?
-      return unless confirm(confirmMessage) is true
-    e.at().remove()
-    #browser.resetDom(model) if $(el).attr('data-refresh')
+  # General Purpose Functions
 
-  ###
-    Cron
-  ###
-  async.nextTick ->
-    uobj = u.transformForAPI model.get('_page.user.pub'), model.get('_page.user.priv')
-    paths = {}
-    algos.cron uobj, {paths}
-    u.preenHistory uobj, {paths}
-    if _.size(paths) > 0
-      if (delete paths['stats.hp'])? # we'll set this manually so we can get a cool animation
-        hp = uobj.stats.hp
-        setTimeout ->
-          # we need to reset dom - too many changes have been made and won't it breaks dom listeners.
-          #browser.resetDom(model)
-          user.pub.set 'stats.hp', hp
-        , 500
-      u.setDiff model, uobj, paths, {pass: cron: true}
-      #_.each paths, (v,k) -> user.pass({cron:true}).set(k,helpers.dotGet(k, uObj));true
+  app.fn
+    ###
+    Removing array items - used for things like websites, chat, etc
+    ###
+    removeAt: (e, el) ->
+      if (confirmMessage = $(el).attr 'data-confirm')?
+        return unless confirm(confirmMessage) is true
+      e.at().remove()
+      #browser.resetDom(model) if $(el).attr('data-refresh')
+
+  app.user.cron()

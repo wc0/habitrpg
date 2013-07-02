@@ -7,7 +7,8 @@ async = require 'async'
 ###
   Make scoring functionality available to the app
 ###
-module.exports.app = (app, model) ->
+module.exports.app = (app) ->
+  {model} = app
   user = u.userAts(model)
 
 

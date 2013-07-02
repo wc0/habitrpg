@@ -7,7 +7,8 @@ u = require './user.coffee'
 ###
   app exports
 ###
-module.exports.app = (app, model) ->
+module.exports.app = (app) ->
+  {model} = app
   user = u.userAts(model)
 
   app.fn 'chooseEgg', (e, el) ->

@@ -43,9 +43,9 @@
                     {{#if equal(_session.flags.nodeEnv, 'development')}}
                         <h4>Cheat</h4>
                         <ul class='unstyled'>
-                            <li><button class='btn' x-bind="click:emulateNextDay">Emulate Next Day</button></li>
-                            <li><button class='btn' x-bind="click:emulateTenDays">Emulate 10 Days</button></li>
-                            <li><button class='btn' x-bind="click:cheat">Insta Level</button></li>
+                            <li><button class='btn' x-bind="click:debug.nextDay">Emulate Next Day</button></li>
+                            <li><button class='btn' x-bind="click:debug.nextTenDays">Emulate 10 Days</button></li>
+                            <li><button class='btn' x-bind="click:debug.cheat">Insta Level</button></li>
                             <li><button class='btn' x-bind='click:reset'>Reset Level</button></li>
                         </ul>
                     {{else}}

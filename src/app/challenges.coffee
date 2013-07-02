@@ -3,7 +3,8 @@ _ = require 'lodash'
 async = require 'async'
 u = require './user.coffee'
 
-module.exports.app = (app, model) ->
+module.exports.app = (app) ->
+  {model} = app
   browser = require './browser.coffee'
   user = u.userAts(model)
 

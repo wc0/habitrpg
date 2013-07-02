@@ -1,5 +1,6 @@
 _ = require 'lodash'
-{helpers} = require 'habitrpg-shared'
+{algos, helpers} = require 'habitrpg-shared'
+async = require 'async'
 
 properties =
   pub: [
@@ -30,7 +31,7 @@ properties =
 ###
 Transform the schema provided by API or Helpers into something Derby can use (depends on public, private, and auth collections)
 ###
-module.exports.transformForDerby = (user) ->
+module.exports.transformForDerby = transformForDerby = (user) ->
   obj =
     pub: id: user.id
     priv: id: user.id
@@ -50,7 +51,7 @@ module.exports.transformForDerby = (user) ->
 ###
 Transform the schema provided by Derby so it can be consumed by API / Helpers
 ###
-module.exports.transformForAPI = (pub, priv) ->
+module.exports.transformForAPI = transformForAPI = (pub, priv) ->
   merged = {}
   _.merge merged, pub, priv
   _.each ['habit','daily','todo','reward'], (type) ->
@@ -79,13 +80,15 @@ module.exports.userAts = (model) ->
   model.setDiff() is extremely expensive, especially if your object has arrays in it. I mean "often crashes chrome"
   expensive. So here we add our own custom diff requiring a `paths` object to tell where to set
 ###
-module.exports.setDiff = (model, obj, paths, options={}) ->
+module.exports.setDiff = setDiff = (model, obj, paths, options={}) ->
+  _.defaults options, {pass:{}, cb:->}
+
   unless obj.pub and obj.priv
     obj = module.exports.transformForDerby obj
 
   # Allows us to still run a post-set callback, even though we're performing many sets
   count = _.size paths
-  done = -> options.cb?() if (--count is 0)
+  done = -> options.cb() if (--count is 0)
 
   ats = module.exports.userAts model
   _.each paths, (v, path) ->
@@ -138,7 +141,7 @@ preenHistory = (history) ->
   newHistory
 
 minHistLen = 7
-module.exports.preenHistory = (uobj, options) ->
+module.exports.preenHistory = preenHistory = (uobj, options) ->
   paths = options?.paths or {}
 
   _.each uobj.tasks, (task) ->
@@ -152,3 +155,29 @@ module.exports.preenHistory = (uobj, options) ->
   if uobj.history?.todos?.length > minHistLen
     uobj.history.todos = preenHistory(uobj.history.todos)
     paths['history.todos'] = true
+
+
+###
+  Expose app functions
+###
+module.exports.app = (app) ->
+  {model} = app
+
+  app.fn
+    user:
+      cron: ->
+        async.nextTick =>
+          uobj = transformForAPI @pub.get(), @priv.get()
+          paths = {}
+          algos.cron uobj, {paths}
+          preenHistory uobj, {paths}
+          if _.size(paths) > 0
+            if (delete paths['stats.hp'])? # we'll set this manually so we can get a cool animation
+              hp = uobj.stats.hp
+              setTimeout =>
+                # we need to reset dom - too many changes have been made and won't it breaks dom listeners.
+                #browser.resetDom(model)
+                @pub.set 'stats.hp', hp
+              , 500
+            setDiff model, uobj, paths, {pass: cron: true}
+            #_.each paths, (v,k) -> user.pass({cron:true}).set(k,helpers.dotGet(k, uObj));true

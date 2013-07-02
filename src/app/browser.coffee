@@ -172,29 +172,14 @@ setupGrowlNotifications = (model) ->
     if captures > args
       statsNotification '<i class="icon-chevron-up"></i> Level Up!', 'lvl'
 
-module.exports.resetDom = (model) ->
-  window.DERBY.app.dom.clear()
-  window.DERBY.app.view.render(model, window.DERBY.app.view._lastRender.ns, window.DERBY.app.view._lastRender.context);
+module.exports.app = (app) ->
+  {model} = app
 
-# Note, Google Analyatics giving beef if in this file. Moved back to index.html. It's ok, it's async - really the
-# syncronous requires up top are what benefit the most from this file.
+  app.fn
+    resetDom: ->
+      app.dom.clear()
+      app.view.render @model, app.view._lastRender.ns, app.view._lastRender.context
 
-googleAnalytics = (model) ->
-  if model.get('_session.flags.nodeEnv') is 'production'
-    window._gaq = [["_setAccount", "UA-33510635-1"], ["_setDomainName", "habitrpg.com"], ["_trackPageview"]]
-    $.getScript ((if "https:" is document.location.protocol then "https://ssl" else "http://www")) + ".google-analytics.com/ga.js"
-
-amazonAffiliate = (model) ->
-#  if model.get('_page.user.priv.flags.ads') isnt 'hide'
-#    $.getScript '//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js'
-#    (window.adsbygoogle ?= []).push({})
-
-googleCharts = ->
-  $.getScript "//www.google.com/jsapi", ->
-    # Specifying callback in options param is vital! Otherwise you get blank screen, see http://stackoverflow.com/a/12200566/362790
-    google.load "visualization", "1", {packages:["corechart"], callback: ->}
-
-module.exports.app = (app, model) ->
   setupGrowlNotifications(model) unless model.get('_session.flags.isMobile')
 
   app.on 'render', (ctx) ->
@@ -214,10 +199,30 @@ module.exports.app = (app, model) ->
       Each file getsload asyncronously via $.getScript, so it doesn't bog page-load
       These need to be handled in app.on('render'), see https://groups.google.com/forum/?fromgroups=#!topic/derbyjs/x8FwdTLEuXo
     ###
-    $.getScript('//checkout.stripe.com/v2/checkout.js')
-    unless (model.get('_session.flags.isMobile') is true)
-      $.getScript("//s7.addthis.com/js/250/addthis_widget.js#pubid=lefnire")
-      googleCharts()
+    async.nextTick ->
 
-    googleAnalytics(model)
-    amazonAffiliate(model)
+      # -- Stripe --
+      $.getScript('//checkout.stripe.com/v2/checkout.js')
+
+      # -- Google Analytics --
+      # Note, Google Analyatics giving beef if in this file. Moved back to index.html. It's ok, it's async - really the
+      # syncronous requires up top are what benefit the most from this file.
+      if model.get('_session.flags.nodeEnv') is 'production'
+        window._gaq = [["_setAccount", "UA-33510635-1"], ["_setDomainName", "habitrpg.com"], ["_trackPageview"]]
+        $.getScript ((if "https:" is document.location.protocol then "https://ssl" else "http://www")) + ".google-analytics.com/ga.js"
+
+      # -- Amazon Affiliate --
+      #if model.get('_page.user.priv.flags.ads') isnt 'hide'
+      #  $.getScript '//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js'
+      #  (window.adsbygoogle ?= []).push({})
+
+      unless (model.get('_session.flags.isMobile') is true)
+
+        # -- AddThis--
+        $.getScript("//s7.addthis.com/js/250/addthis_widget.js#pubid=lefnire")
+
+        # -- Google Charts --
+        $.getScript "//www.google.com/jsapi", ->
+          # Specifying callback in options param is vital! Otherwise you get blank screen, see http://stackoverflow.com/a/12200566/362790
+          google.load "visualization", "1", {packages:["corechart"], callback: ->}
+

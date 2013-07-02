@@ -8,7 +8,8 @@ u = require ('./user.coffee')
   Listeners to enabled flags, set notifications to the user when they've unlocked features
 ###
 
-module.exports.app = (app, model) ->
+module.exports.app = (app) ->
+  {model} = app
   user = u.userAts(model)
 
   alreadyShown = (before, after) -> !(!before and after is true)

@@ -1,16 +1,17 @@
 moment = require 'moment'
 {algos} = require 'habitrpg-shared'
-u = require './user.coffee'
 
-module.exports.app = (app, model) ->
-  user = u.userAts(model)
+module.exports.app = (app) ->
+  {model} = app
 
-  app.fn 'emulateNextDay', ->
-    user.priv.set 'lastCron', +moment().subtract('days', 1), ->location.reload()
+  app.fn
+    debug:
+      nextDay: ->
+        @priv.set 'lastCron', +moment().subtract('days', 1), ->app.user.cron()
 
-  app.fn 'emulateTenDays', ->
-    user.priv.set 'lastCron', +moment().subtract('days', 10), ->location.reload()
+      nextTenDays: ->
+        @priv.set 'lastCron', +moment().subtract('days', 10), ->app.user.cron()
 
-  app.fn 'cheat', ->
-    user.pub.increment 'stats.exp', algos.tnl(user.pub.get('stats.lvl'))
-    user.pub.increment 'stats.gp', 1000
+      cheat: ->
+        @pub.increment 'stats.exp', algos.tnl(@pub.get('stats.lvl'))
+        @pub.increment 'stats.gp', 1000

@@ -3,7 +3,8 @@ browser = require './browser.coffee'
 u = require './user.coffee'
 _ = require 'lodash'
 
-module.exports.app = (app, model) ->
+module.exports.app = (app) ->
+  {model} = app
   user = u.userAts(model)
 
   app.fn 'revive', ->
