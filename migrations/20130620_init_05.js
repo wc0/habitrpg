@@ -22,6 +22,9 @@ db.users.find(registered).forEach(function(user){
         user.ids[type + 's'] = user[type + 'Ids'];
     });
 
+    // Migrate "rest" flag to preferences (so it's public)
+    user.preferences.resting = user.flags.rest;
+
     user.tasks = _.transform(user.tasks, function(acc,v,k,obj) {
         if (!!k && !_.contains(_.keys(v),'$spec')) acc[k] = v;
     })

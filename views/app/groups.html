@@ -145,13 +145,13 @@
                                 <h3 class="popover-title">Daniel Johansson</h3>
                                 <div class="popover-content">
                                     Welcome to the Tavern! I'm <a target="_blank" href="http://www.kickstarter.com/profile/2014640723">Daniel</a>, the bar keep. If you want to rest a while (going on vacation? sudden illness?), I'll set you up at the inn - dailies won't hurt you while you're resting. Stay a while & meet the locals.
-                                    <div><button x-bind="click:user.toggleResting" class='btn btn-large btn-success {#if _page.user.priv.flags.rest}active{/}'>{#if _page.user.priv.flags.rest}Check Out of Inn{else}Rest In The Inn{/}</button></div>
+                                    <div><button x-bind="click:user.toggleResting" class='btn btn-large btn-success {#if _page.user.pub.preferences.resting}active{/}'>{#if _page.user.pub.preferences.resting}Check Out of Inn{else}Rest In The Inn{/}</button></div>
                                 </div>
                             </div>
                         </td>
                     </tr></table>
                 </div>
-                <div class='alert alert-info {#unless _page.user.priv.flags.rest}hidden{/}'>Whilst resting your dailies are saved and aren't affected by day turn-over. Whether you check out tomorrow or in a weeks time you'll continue in the same state as when you checked in.</div>
+                <div class='alert alert-info {#unless _page.user.pub.preferences.resting}hidden{/}'>Whilst resting your dailies are saved and aren't affected by day turn-over. Whether you check out tomorrow or in a weeks time you'll continue in the same state as when you checked in.</div>
 
                 <div class=well>
                     <h3>Resources</h3>

@@ -285,4 +285,4 @@ module.exports.app = (app) ->
         Toggle Resting
       ###
       toggleResting: ->
-        @priv.set 'flags.rest', !@priv.get('flags.rest')
+        @pub.set 'preferences.resting', !@pub.get('preferences.resting')
