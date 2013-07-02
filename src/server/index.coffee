@@ -44,10 +44,6 @@ store = derby.createStore(
   redis: redis
 )
 
-# Expose stuff to test suite which we wouldn't want exposed to production app
-if nconf.get('NODE_ENV')
-  module.exports.store = store
-
 store.on 'bundle', (browserify) ->
   vendorScripts = [
     "jquery-ui-1.10.2/jquery-1.9.1"
@@ -69,10 +65,12 @@ store.on 'bundle', (browserify) ->
   # Add support for directly requiring coffeescript in browserify bundles
   browserify.transform coffeeify
 
-# Authentication setup
+###
+  Authentication setup
+###
 
-#Save new user in usersPublic & usersPrivate after derby-auth has saved to `auths` collection
-module.exports.registerCallback = (req, res, auth, next) ->
+# Save new user in usersPublic & usersPrivate after derby-auth has saved to `auths` collection
+registerCallback = (req, res, auth, next) ->
   u = require('../app/user.coffee')
   model = req.getModel()
   uobj = u.transformForDerby helpers.newUser()
@@ -94,8 +92,7 @@ strategies =
 options =
   site:
     domain: nconf.get('BASE_URL')
-  passport:
-    registerCallback: registerCallback: module.exports.registerCallback
+  passport: {registerCallback}
 
 # This has to happen before our middleware stuff
 auth.store(store, mongo, strategies)
@@ -157,3 +154,8 @@ priv.routes(expressApp)
 
 expressApp.all "*", (req, res, next) ->
   next "404: " + req.url
+
+# Expose stuff to test suite which we wouldn't want exposed to production app
+if nconf.get('NODE_ENV') is 'test'
+  module.exports.store = store
+  module.exports.registerCallback = registerCallback
