@@ -161,10 +161,12 @@ module.exports.preenHistory = preenHistory = (uobj, options) ->
   Expose app functions
 ###
 module.exports.app = (app) ->
-  {model} = app
-
   app.fn
     user:
+
+      ###
+        Cron
+      ###
       cron: ->
         async.nextTick =>
           uobj = transformForAPI @pub.get(), @priv.get()
@@ -179,5 +181,108 @@ module.exports.app = (app) ->
                 #browser.resetDom(model)
                 @pub.set 'stats.hp', hp
               , 500
-            setDiff model, uobj, paths, {pass: cron: true}
+            setDiff @model, uobj, paths, {pass: cron: true}
             #_.each paths, (v,k) -> user.pass({cron:true}).set(k,helpers.dotGet(k, uObj));true
+
+      ###
+        Revive
+      ###
+      revive: ->
+        uobj = @pub.get()
+        _.each {hp:50, gp:0, exp:0}, (v,k) => @pub.set "stats.#{k}", v; true
+        @pub.set('stats.lvl', --uobj.stats.lvl) if uobj.stats.lvl > 1
+
+        ## Lose a random item
+        loseThisItem = false
+        owned = uobj.items
+        # unless they're already at 0-everything
+        if +owned.armor > 0 or +owned.head > 0 or +owned.shield > 0 or +owned.weapon > 0
+          # find a random item to lose
+          until loseThisItem
+            #candidate = {0:'items.armor', 1:'items.head', 2:'items.shield', 3:'items.weapon', 4:'stats.gp'}[Math.random()*5|0]
+            candidate = {0:'armor', 1:'head', 2:'shield', 3:'weapon'}[Math.random()*4|0]
+            loseThisItem = candidate if owned[candidate] > 0
+          @pub.set "items.#{lostThisItem}", 0
+
+        app.items.updateStore()
+
+      ###
+        Reset
+      ###
+      reset: (e, el) ->
+        @priv.set 'tasks', {}
+        ['habit', 'daily', 'todo', 'reward'].forEach (type) => @priv.set "ids.#{type}s", []
+
+        _.each {hp:50, lvl:1, gp:0, exp:0}, (v,k) => @pub.set "stats.#{k}", v; true
+        _.each {armor:0, weapon:0, head:0, shield:0}, (v,k) => @pub.set "items.#{k}", v; true
+
+        app.items.updateStore()
+        #browser.resetDom(model)
+
+      ###
+        Close New Stuff
+      ###
+      closeNewStuff: (e, el) ->
+        @priv.set('flags.newStuff', 'hide')
+
+      ###
+        Customize Avatar
+      ###
+      customizeAvatar: (e, el) ->
+        [k, v] = [$(el).attr('data-attr'), $(el).attr('data-value')]
+        @pub.set "preferences.#{k}", v
+
+      ###
+        Restore Save
+      ###
+      restoreSave: ->
+        pub = @pub
+        $('#restore-form input').each ->
+          [path, val] = [$(this).attr('data-for'), +($(this).val() or 1)]
+          pub.set(path,val)
+
+      ###
+        Toggle Header
+      ###
+      toggleHeader: (e, el) ->
+        @pub.set 'preferences.hideHeader', !@pub.get('preferences.hideHeader')
+
+      ###
+        Delete Account
+      ###
+      deleteAccount: (e, el) ->
+        count = 3
+        done = ->
+          location.href = "/logout" if (--count is 0)
+        ['usersPublic', 'usersPrivate', 'auths'].forEach (collection) =>
+          @model.del "#{collection}.#{@uid}", done
+
+      ###
+        Add Website
+      ###
+      addWebsite: (e, el) ->
+        newWebsite = @model.get('_page.new.profileWebsite')
+        return if /^(\s)*$/.test(newWebsite)
+        @pub.unshift 'profile.websites', newWebsite
+        @model.set '_page.new.profileWebsite', ''
+
+      ###
+        Toggle Game Pane
+      ###
+      toggleGamePane: ->
+        @model.set '_page.active.gamePane', !@model.get('_page.active.gamePane'), ->
+          app.browser.setupTooltips()
+
+      ###
+        Click Avatar
+      ###
+      clickAvatar: (e, el) ->
+        uid = $(el).attr('data-uid')
+        if uid is @uid then app.user.toggleGamePane() # clicked self
+        else $("#avatar-modal-#{uid}").modal('show')
+
+      ###
+        Toggle Resting
+      ###
+      toggleResting: ->
+        @priv.set 'flags.rest', !@priv.get('flags.rest')

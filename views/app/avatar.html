@@ -14,7 +14,7 @@
                 data-level="{@profile.stats.lvl}"
                 data-checkpet="{#if @profile.items.pet}hasPet{/}"
                 data-checkuser="{{#if @main}}isUser{{/}}"
-                data-uid="{{@profile.id}}" x-bind="click:clickAvatar"
+                data-uid="{{@profile.id}}" x-bind="click:user.clickAvatar"
                 rel="popover" data-placement="bottom" data-trigger="hover" data-html="true" data-content="{{#unless @main}}
                              <div>
                                 <div class='progress progress-danger' style='height:5px;'>
@@ -77,8 +77,8 @@
             <!-- gender -->
             <li class="customize-menu">
                 <menu label="Head">
-                    <button type="button" class="m_head_0 customize-option" data-value="m" data-attr="gender" x-bind="click:customizeAvatar"></button>
-                    <button type="button" class="f_head_0 customize-option" data-value="f" data-attr="gender" x-bind="click:customizeAvatar"></button>
+                    <button type="button" class="m_head_0 customize-option" data-value="m" data-attr="gender" x-bind="click:user.customizeAvatar"></button>
+                    <button type="button" class="f_head_0 customize-option" data-value="f" data-attr="gender" x-bind="click:user.customizeAvatar"></button>
                 </menu>
                 <label class="checkbox">
                     <input type=checkbox checked="{_page.user.pub.preferences.showHelm}" /> Show Helm
@@ -89,21 +89,21 @@
             <!-- hair -->
             <li class="customize-menu">
                 <menu label="Hair">
-                    <button type="button" class="{:p.gender}_hair_blond customize-option" data-value="blond" data-attr="hair" x-bind="click:customizeAvatar"></button>
-                    <button type="button" class="{:p.gender}_hair_black customize-option" data-value="black" data-attr="hair" x-bind="click:customizeAvatar"></button>
-                    <button type="button" class="{:p.gender}_hair_brown customize-option" data-value="brown" data-attr="hair" x-bind="click:customizeAvatar"></button>
-                    <button type="button" class="{:p.gender}_hair_white customize-option" data-value="white" data-attr="hair" x-bind="click:customizeAvatar"></button>
+                    <button type="button" class="{:p.gender}_hair_blond customize-option" data-value="blond" data-attr="hair" x-bind="click:user.customizeAvatar"></button>
+                    <button type="button" class="{:p.gender}_hair_black customize-option" data-value="black" data-attr="hair" x-bind="click:user.customizeAvatar"></button>
+                    <button type="button" class="{:p.gender}_hair_brown customize-option" data-value="brown" data-attr="hair" x-bind="click:user.customizeAvatar"></button>
+                    <button type="button" class="{:p.gender}_hair_white customize-option" data-value="white" data-attr="hair" x-bind="click:user.customizeAvatar"></button>
                 </menu>
             </li>
 
             <!-- skin -->
             <li class="customize-menu">
                 <menu label="Skin">
-                    <button type="button" class='{:p.gender}_skin_dead customize-option' data-value="dead" data-attr="skin" x-bind="click:customizeAvatar"></button>
-                    <button type="button" class='{:p.gender}_skin_orc customize-option' data-value="orc" data-attr="skin" x-bind="click:customizeAvatar"></button>
-                    <button type="button" class='{:p.gender}_skin_asian customize-option' data-value="asian" data-attr="skin" x-bind="click:customizeAvatar"></button>
-                    <button type="button" class='{:p.gender}_skin_black customize-option' data-value="black" data-attr="skin" x-bind="click:customizeAvatar"></button>
-                    <button type="button" class='{:p.gender}_skin_white customize-option' data-value="white" data-attr="skin" x-bind="click:customizeAvatar"></button>
+                    <button type="button" class='{:p.gender}_skin_dead customize-option' data-value="dead" data-attr="skin" x-bind="click:user.customizeAvatar"></button>
+                    <button type="button" class='{:p.gender}_skin_orc customize-option' data-value="orc" data-attr="skin" x-bind="click:user.customizeAvatar"></button>
+                    <button type="button" class='{:p.gender}_skin_asian customize-option' data-value="asian" data-attr="skin" x-bind="click:user.customizeAvatar"></button>
+                    <button type="button" class='{:p.gender}_skin_black customize-option' data-value="black" data-attr="skin" x-bind="click:user.customizeAvatar"></button>
+                    <button type="button" class='{:p.gender}_skin_white customize-option' data-value="white" data-attr="skin" x-bind="click:user.customizeAvatar"></button>
                 </menu>
             </li>
         </menu>
@@ -112,8 +112,8 @@
             <menu type="list">
                 <li class="customize-menu">
                     <menu label="Clothing">
-                        <button type="button" class="f_armor_0_v1 customize-option" data-value="v1" data-attr="armorSet" x-bind="click:customizeAvatar"></button>
-                        <button type="button" class="f_armor_0_v2 customize-option" data-value="v2" data-attr="armorSet" x-bind="click:customizeAvatar"></button>
+                        <button type="button" class="f_armor_0_v1 customize-option" data-value="v1" data-attr="armorSet" x-bind="click:user.customizeAvatar"></button>
+                        <button type="button" class="f_armor_0_v2 customize-option" data-value="v2" data-attr="armorSet" x-bind="click:user.customizeAvatar"></button>
                     </menu>
                 </li>
             </menu>
@@ -148,14 +148,14 @@
     <div class="control-group">
         <label class="control-label" for="profileWebsite">Websites</label>
         <div class="controls">
-            <form x-bind="submit:profileAddWebsite">
+            <form x-bind="submit:user.addWebsite">
                 <input type="url" id="profileWebsite" value="{_page.new.profileWebsite}" placeholder="Add Website"/>
             </form>
         </div>
         <ul>
             <!-- would prefer if there were and index in #each, instead using data-website to search with indexOf -->
             {#each _page.user.pub.profile.websites as :website}
-            <li>{:website} <a data-website="{:website}" x-bind="click:profileRemoveWebsite"><i class='icon-remove'></i></a></li>
+            <li>{:website} <a data-confirm="Remove this website?" x-bind="click:removeAt"><i class='icon-remove'></i></a></li>
             {/}
         </ul>
 

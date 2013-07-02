@@ -5,7 +5,6 @@ u = require './user.coffee'
 
 module.exports.app = (app) ->
   {model} = app
-  browser = require './browser.coffee'
   user = u.userAts(model)
 
   ###
@@ -95,7 +94,7 @@ module.exports.app = (app) ->
         model.del "_page.lists.tasks.#{cid}.#{type}" #remove old refList
         model.refList "_page.lists.tasks.#{cid}.#{type}", "groups.#{gid}.challenges.#{cid}.tasks", "groups.#{gid}.challenges.#{cid}.ids.#{type}"
         true
-      browser.growlNotification('Challenge Created','success')
+      app.browser.growlNotification('Challenge Created','success')
       challengeDiscard()
 
   app.fn 'toggleChallengeEdit', (e, el) ->

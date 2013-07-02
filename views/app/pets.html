@@ -27,24 +27,24 @@
 
 <pet:>
     <td class="{#if _page.user.pub.items.pets[.name]}active-pet{/}">
-        <img rel=tooltip title="{.text} - {.value} Gems" x-bind="click:selectPet" data-pet='{.name}' src='img/sprites/{.icon}'/>
+        <img rel=tooltip title="{.text} - {.value} Gems" x-bind="click:pets.selectPet" data-pet='{.name}' src='img/sprites/{.icon}'/>
     </td>
 
 <hatchingPotion:>
-    <td class="active-hatchingPotion" x-bind="click:buyHatchingPotion" data-hatchingPotion='{.name}'>
+    <td class="active-hatchingPotion" x-bind="click:pets.buyHatchingPotion" data-hatchingPotion='{.name}'>
         <div class="Pet_HatchingPotion_{.name}"></div>
         <p>{.text}<br/><small>{.value} Gems<small></p>
     </td>
 
 <egg:>
-    <td class="active-egg" x-bind="click:buyEgg" data-egg='{.name}'>
+    <td class="active-egg" x-bind="click:pets.buyEgg" data-egg='{.name}'>
         <div rel=tooltip class="Pet_Egg_{.name}"></div>
         <p>{.text}<br/><small>{.value} Gems<small></p>
     </td>
 
 <inventory:>
     <div class='row-fluid'>
-        <div class='{#if _page.hatchEgg}span6{/}'>
+        <div class='{#if _page.pets.hatchEgg}span6{/}'>
             <menu type="list" class="inventory-list">
                 <li class="customize-menu">
                     <menu label="Eggs" class='pets-menu'>
@@ -53,7 +53,7 @@
                         {/if}
                         {#each _page.user.pub.items.eggs as :egg}
                             <div>
-                                <button rel=tooltip title="{:egg.text}" class="customize-option Pet_Egg_{{:egg.name}}" x-bind="click: chooseEgg"></button>
+                                <button rel=tooltip title="{:egg.text}" class="customize-option Pet_Egg_{{:egg.name}}" x-bind="click: pets.chooseEgg"></button>
                                 <p>{:egg.text}</p>
                             </div>
                         {/each}
@@ -66,7 +66,7 @@
                         {/if}
                         {#each _page.user.pub.items.hatchingPotions as :hatchingPotion}
                             <div>
-                                <button rel=tooltip title="{:hatchingPotion}" class="customize-option Pet_HatchingPotion_{{:hatchingPotion}}" x-bind="click: chooseHatching Potion"></button>
+                                <button rel=tooltip title="{:hatchingPotion}" class="customize-option Pet_HatchingPotion_{{:hatchingPotion}}" x-bind="click:pets.chooseHatchingPotion"></button>
                                 <p>{:hatchingPotion}</p>
                             </div>
                         {/each}
@@ -74,14 +74,14 @@
                 </li>
             </menu>
         </div>
-        {#if _page.hatchEgg}
+        {#if _page.pets.hatchEgg}
         <div class='span6'>
             <h3>Hatch Your Egg</h3>
             {#if not(_page.user.pub.items.hatchingPotions)}
             <p>You don't have any hatching potions yet.</p>
             {else}
-            <p>Which hatching potion will you pour on your {_page.hatchEgg.text} egg?</p>
-            <form x-bind="submit:hatchEgg">
+            <p>Which hatching potion will you pour on your {_page.pets.hatchEgg.text} egg?</p>
+            <form x-bind="submit:pets.hatchEgg">
                 <select>
                     {#each _page.user.pub.items.hatchingPotions as :hatchingPotion}
                         <option>{:hatchingPotion}</option>
@@ -135,7 +135,7 @@
 <stable-pet:>
     <div rel="tooltip" title="{{@tooltip}}">
         {#if ownsPet(@pet, _page.user.pub.items.pets)}
-            <button class="pet-button Pet-{{@pet}} {#if equal(_page.user.pub.items.currentPet.name, @string)}active{/if}" data-pet="{{@pet}}" x-bind="click:choosePet"></button>
+            <button class="pet-button Pet-{{@pet}} {#if equal(_page.user.pub.items.currentPet.name, @string)}active{/if}" data-pet="{{@pet}}" x-bind="click:pets.choosePet"></button>
         {else}
             <button class="pet-button pet-not-owned" data-pet="{{@pet}}"><img src="/img/PixelPaw.png"/></button>
         {/}

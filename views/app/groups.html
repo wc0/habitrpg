@@ -12,8 +12,8 @@
                 <!-- #with required for the accept/reject buttons -->
                 {#with _page.user.pub.invitations.party as :party}
                     <h2>You're Invited To {:party.name}</h2>
-                    <a class='btn btn-success' data-type='party' x-bind="click:acceptInvitation">Accept</a>
-                    <a class='btn btn-danger' x-bind="click:rejectInvitation">Reject</a>
+                    <a class='btn btn-success' data-type='party' x-bind="click:groups.acceptInvitation">Accept</a>
+                    <a class='btn btn-danger' x-bind="click:groups.rejectInvitation">Reject</a>
                 {/}
             {else}
                 <h2>Create A Party</h2>
@@ -39,8 +39,8 @@
                         {#each _page.user.pub.invitations.guilds as :invitation}
                             <div>
                                 <h3>You're Invited To {:invitation.name}</h3>
-                                <a class='btn btn-success' data-type='guild' x-bind="click:acceptInvitation">Accept</a>
-                                <a class='btn btn-danger' x-bind="click:rejectInvitation">Reject</a>
+                                <a class='btn btn-success' data-type='guild' x-bind="click:groups.acceptInvitation">Accept</a>
+                                <a class='btn btn-danger' x-bind="click:groups.rejectInvitation">Reject</a>
                             </div>
                         {/}
                     {/}
@@ -70,9 +70,9 @@
                 <li>
                     <!-- join / leave -->
                     {#if indexOf(:public.members,_session.userId)}
-                        <a x-bind="click:groupLeave" data-id={{:public.id}} class='btn btn-small btn-danger'><i class='icon-ban-circle'></i> Leave</a>
+                        <a x-bind="click:groups.leave" data-id={{:public.id}} class='btn btn-small btn-danger'><i class='icon-ban-circle'></i> Leave</a>
                     {else}
-                        <a x-bind="click:joinGroup" class='btn btn-small btn-success'><i class='icon-ok'></i> Join</a>
+                        <a x-bind="click:groups.joinGroup" class='btn btn-small btn-success'><i class='icon-ok'></i> Join</a>
                     {/}
                 </li>
             </ul>
@@ -83,7 +83,7 @@
     </table>
 
 <create-group:>
-    <form class=form-horizontal x-bind="submit:groupCreate" data-type={{@type}} >
+    <form class=form-horizontal x-bind="submit:groups.create" data-type={{@type}} >
         {#if _page.errors.group}
         <div class='alert alert-danger'>{_page.errors.group}</div>
         {/}
@@ -145,7 +145,7 @@
                                 <h3 class="popover-title">Daniel Johansson</h3>
                                 <div class="popover-content">
                                     Welcome to the Tavern! I'm <a target="_blank" href="http://www.kickstarter.com/profile/2014640723">Daniel</a>, the bar keep. If you want to rest a while (going on vacation? sudden illness?), I'll set you up at the inn - dailies won't hurt you while you're resting. Stay a while & meet the locals.
-                                    <div><button x-bind="click:toggleResting" class='btn btn-large btn-success {#if _page.user.priv.flags.rest}active{/}'>{#if _page.user.priv.flags.rest}Check Out of Inn{else}Rest In The Inn{/}</button></div>
+                                    <div><button x-bind="click:user.toggleResting" class='btn btn-large btn-success {#if _page.user.priv.flags.rest}active{/}'>{#if _page.user.priv.flags.rest}Check Out of Inn{else}Rest In The Inn{/}</button></div>
                                 </div>
                             </div>
                         </td>
@@ -175,13 +175,13 @@
                             <div class="accordion-inner blah-options">
                                 {#if _page.editing.groups[@group.id]}
                                     <div style="height:10px">
-                                        <a class=pull-right x-bind=click:toggleGroupEdit data-gid={{@group.id}} ><i class=icon-ok></i></a>
+                                        <a class=pull-right x-bind=click:groups.toggleEdit data-gid={{@group.id}} ><i class=icon-ok></i></a>
                                     </div>
                                     <input type=text value={@group.name} class='option-content' placeholder='Group Name' />
                                     <textarea cols=3 placeholder='Description'>{@group.description}</textarea>
                                     <input type=url class=option-content placeholder="Logo Url" value={@group.logo} />
                                     {#with @group}
-                                    <form class='form-inline' x-bind="submit:groupAddWebsite" >
+                                    <form class='form-inline' x-bind="submit:groups.addWebsite" >
                                         <input type=url placeholder='Website' class='option-content' value={_page.new.groupWebsite} />
                                         <input type=submit value="Add" />
                                     </form>
@@ -191,7 +191,7 @@
                                             <option selected="{equal(:memberId,_page.new.groupLeader)}">{{username(_page.members[:memberId].profile.name}}</option>
                                         {/}
                                     </select>
-                                    <button x-bind=click:assignGroupLeader >Assign</button>
+                                    <button x-bind=click:groups.assignLeader >Assign</button>
 
                                     {/}
                                     {#if @group.websites}
@@ -205,7 +205,7 @@
                                 {else}
                                     {#if @group.logo}<img class=pull-right style='max-width:150px' src={@group.logo} />{/}
                                     {{#if equal(@group.leader,_session.userId)}}
-                                        <a class=pull-right x-bind=click:toggleGroupEdit data-gid={{@group.id}} ><i class=icon-pencil></i></a>
+                                        <a class=pull-right x-bind=click:groups.toggleEdit data-gid={{@group.id}} ><i class=icon-pencil></i></a>
                                     {{/}}
                                     <div>{@group.description}</div>
                                     {#if @group.websites}
@@ -252,7 +252,7 @@
                                     {/}
                                 </table>
                                 {#with @group as :group}
-                                <form class="form-inline" x-bind="submit:groupInvite" data-type="{@group.type}" >
+                                <form class="form-inline" x-bind="submit:groups.invite" data-type="{@group.type}" >
                                     {#if _page.errors.group}
                                     <div class='alert alert-danger'>{_page.errors.group}</div>
                                     {/}
@@ -291,7 +291,7 @@
 
 
                 </div>
-                <a class='btn btn-danger' data-id="{{@group.id}}" x-bind="click:groupLeave">Leave</a>
+                <a class='btn btn-danger' data-id="{{@group.id}}" x-bind="click:groups.leave">Leave</a>
             {{/}}
 
         </div>
@@ -314,10 +314,10 @@
             {{else}}
                 {{#if equal(@group.leader,_session.userId)}}
                     {#if _page.editing.leaderMessage[@group.id]}
-                        <a x-bind=click:toggleLeaderMessageEdit data-gid={{@group.id}} class=pull-right><i class=icon-ok></i></a>
+                        <a x-bind=click:groups.toggleLeaderMessageEdit data-gid={{@group.id}} class=pull-right><i class=icon-ok></i></a>
                         <textarea cols=3 placeholder='Message from group leader'>{@group.leaderMessage}</textarea>
                     {else}
-                        <a x-bind=click:toggleLeaderMessageEdit data-gid={{@group.id}} class='btn pull-right'>Edit leader message</a>
+                        <a x-bind=click:groups.toggleLeaderMessageEdit data-gid={{@group.id}} class='btn pull-right'>Edit leader message</a>
                     {/}
                 {{/}}
                 {#if @group.leaderMessage}
@@ -346,8 +346,8 @@
 
 <chat-box:>
     {{#with @group as :group}}
-    <form x-bind='submit:sendChat'>
-        <textarea class="span6" rows="3" x-bind='keyup:chatKeyup'>{_page.new.chat}</textarea><br/>
+    <form x-bind='submit:chat.send'>
+        <textarea class="span6" rows="3" x-bind='keyup:chat.keyUp'>{_page.new.chat}</textarea><br/>
         <input class=btn type=submit value="Send Chat" />
     </form>
     {{/}}
@@ -358,6 +358,6 @@
             class="label {{#if @message.npc}}label-success{{else if @message.contributor}}label-inverse{{else if equal(@message.uuid,_session.userId)}}label-info{{/}} chat-message"
             rel='tooltip' title="{{@message.contributor}}{{@message.npc}}">
             {{@message.user}}</span> {{@message.text}} - <span class='muted time'>{relativeDate(@message.timestamp, _page.currentTime)}
-            {{#if or(_page.user.pub.backer.admin,equal(@message.uuid,_session.userId))}}{{#with @message}}<a x-bind="click:deleteChatMessage"><i rel=tooltip title=Delete class=icon-remove></i></a>{{/}}{{/}}
+            {{#if or(_page.user.pub.backer.admin,equal(@message.uuid,_session.userId))}}{{#with @message}}<a x-bind="click:removeAt" data-confirm="Delete chat message?"><i rel=tooltip title=Delete class=icon-remove></i></a>{{/}}{{/}}
         </span>
     </li>

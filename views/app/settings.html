@@ -13,7 +13,7 @@
 
             <hr/>
             <h4>Misc</h4>
-            <button x-bind="click:toggleHeader" class="btn">{#if _page.user.pub.preferences.hideHeader}Show Header{else}Hide Header{/}</button>
+            <button x-bind="click:user.toggleHeader" class="btn">{#if _page.user.pub.preferences.hideHeader}Show Header{else}Hide Header{/}</button>
 
             {{#if _page.auth.local}}
             <hr/>
@@ -49,7 +49,7 @@
         <p>This is highly discouraged because you'll lose historical data, which is useful for graphing your progress over time. However, some people find it useful in the beginning after playing with the app for a while.</p>
         <@footer>
             <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-            <button data-dismiss="modal" x-bind=click:reset class="btn btn-danger">Reset</button>
+            <button data-dismiss="modal" x-bind=click:user.reset class="btn btn-danger">Reset</button>
         </@footer>
     </app:modals:modal>
 
@@ -98,7 +98,7 @@
         {/}
 
         <@footer>
-            <button class="btn" x-bind="click:restoreSave" data-dismiss="modal" aria-hidden="true">Save & Close</button>
+            <button class="btn" x-bind="click:user.restoreSave" data-dismiss="modal" aria-hidden="true">Save & Close</button>
         </@footer>
     </app:modals:modal>
 
@@ -107,7 +107,7 @@
         <p><input type="text" value="{_page.tmp.deleteAccount}" /></p>
         <@footer>
             <button class="btn btn-large" data-dismiss="modal" aria-hidden="true">Cancel</button>
-            <button data-dismiss="modal" x-bind="click:deleteAccount" class="btn btn-danger btn-small {#unless equal(_page.tmp.deleteAccount,'DELETE')}disabled{/}">Delete Account</button>
+            <button data-dismiss="modal" x-bind="click:user.deleteAccount" class="btn btn-danger btn-small {#unless equal(_page.tmp.deleteAccount,'DELETE')}disabled{/}">Delete Account</button>
         </@footer>
     </app:modals:modal>
 
@@ -121,7 +121,7 @@
                     <h1 class="task-action-btn tile solid user-reporter">{{username(_page.user.pub.profile.name)}}</h1>
                     <ul class="flyout-content nav stacked">
                         <li>
-                            <a class="task-action-btn tile solid" x-bind='click:toggleGamePane'>
+                            <a class="task-action-btn tile solid" x-bind='click:user.toggleGamePane'>
                                 {#if _page.active.gamePane}Tasks{else}Options{/}
                             </a>
                         </li>
@@ -133,12 +133,12 @@
 
         <!-- party invitation notification -->
         {#if _page.user.pub.invitations.party}
-            <a style='cursor:pointer;' x-bind="click:gotoPartyChat"><i class='icon-user'></i></a>
+            <a style='cursor:pointer;' x-bind="click:chat.gotoPartyChat"><i class='icon-user'></i></a>
         {/}
 
         <!-- party chat notification -->
         {#if newChatMessages(_page.party.chat,_page.user.priv.party.lastMessageSeen)}
-            <a style='cursor:pointer;' x-bind="click:gotoPartyChat"><i class='icon-comment' rel='tooltip' title='New Party Messages'></i></a>
+            <a style='cursor:pointer;' x-bind="click:chat.gotoPartyChat"><i class='icon-comment' rel='tooltip' title='New Party Messages'></i></a>
         {/}
 
     </div>

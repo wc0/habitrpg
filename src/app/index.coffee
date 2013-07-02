@@ -100,12 +100,10 @@ setupRefLists = (model) ->
     model.refList "_page.lists.tasks.#{uid}.#{type}s", "_page.user.priv.tasks", "_page.user.priv.ids.#{type}s"
     true
 
-  return # Until we get challenges in
   ## Groups
   _.each model.get('groups'), (g) ->
     gpath = "groups.#{g.id}"
     model.refList "_page.lists.challenges.#{g.id}", "#{gpath}.challenges", "#{gpath}.ids.challenges"
-    true
 
     ## Groups -> Challenges
     _.each g.challenges, (c) ->
@@ -114,6 +112,7 @@ setupRefLists = (model) ->
         model.refList "_page.lists.tasks.#{c.id}.#{type}s", "#{gpath}.#{cpath}.tasks", "#{gpath}.#{cpath}.ids.#{type}s"
         true
       true
+    true
 
 # ========== ROUTES ==========
 
@@ -131,13 +130,13 @@ app.get '/', (page, model, params, next) ->
 app.ready (model) ->
   @pub = model.at "_page.user.pub"
   @priv = model.at "_page.user.priv"
-  @uid = @pub.get()
+  @uid = model.get "_session.userId"
 
   require('./user.coffee').app(app)
   require('./tasks.coffee').app(app)
   require('./items.coffee').app(app)
   require('./groups.coffee').app(app)
-  require('./profile.coffee').app(app)
+  require('./chat.coffee').app(app)
   require('./pets.coffee').app(app)
   require('../server/private.coffee').app(app)
   require('./browser.coffee').app(app)
@@ -147,7 +146,6 @@ app.ready (model) ->
   require('./debug.coffee').app(app) unless model.get('_session.flags.nodeEnv') is 'production'
 
   # General Purpose Functions
-
   app.fn
     ###
     Removing array items - used for things like websites, chat, etc

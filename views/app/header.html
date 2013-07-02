@@ -18,7 +18,7 @@
                   <i class=icon-star></i> {floor(_page.user.pub.stats.exp)} / {tnl(_page.user.pub.stats.lvl)}
                   <!-- FIXME doesn't look great here, but the "Experience" CSS title rollover covers it where it was before -->
                   {{#if _page.user.priv.history.exp}}
-                    &nbsp;<a x-bind=click:toggleChart data-id="exp" rel=tooltip title="Progress"><i class=icon-signal></i></a>
+                    &nbsp;<a x-bind=click:tasks.toggleChart data-id="exp" rel=tooltip title="Progress"><i class=icon-signal></i></a>
                   {{/}}
                 </span>
             </div>

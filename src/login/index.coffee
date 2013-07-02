@@ -1,8 +1,8 @@
 app = require('derby').createApp module
 app
-.use(require('derby-ui-boot'))
-.use(require('../../ui'))
-.use(require 'derby-auth/components/index.coffee')
+  .use(require('derby-ui-boot'))
+  .use(require('../../ui'))
+  .use(require 'derby-auth/components/index.coffee')
 
 # ========== ROUTES ==========
 
