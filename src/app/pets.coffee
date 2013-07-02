@@ -16,7 +16,7 @@ module.exports.app = (app) ->
         Choose Egg
       ###
       chooseEgg: (e, el) ->
-        @model.ref '_page.hatchEgg', e.at()
+        @model.ref '_page.pets.hatchEgg', e.at()
 
       ###
         Hatch Egg
@@ -24,7 +24,7 @@ module.exports.app = (app) ->
       hatchEgg: (e, el) ->
         hatchingPotionName = $(el).children('select').val()
         myHatchingPotion = @pub.get 'items.hatchingPotions'
-        egg = @model.get '_page.hatchEgg'
+        egg = @model.get '_page.pets.hatchEgg'
         eggs = @pub.get 'items.eggs'
         myPets = @pub.get 'items.pets'
 

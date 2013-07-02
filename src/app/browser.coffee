@@ -150,7 +150,6 @@ module.exports.app = (app) ->
                 # binding, since jQuery UI will move the element in the DOM.
                 # Also, note that refList index arguments can either be an index
                 # or the item's id property
-                debugger
                 list.pass(ignore: item.id).move from, to
 
       # ----------------

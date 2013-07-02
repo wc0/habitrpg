@@ -4,11 +4,10 @@ _ = require 'lodash'
 module.exports.app = (app) ->
 
   app.on 'render', (ctx) ->
-    self = @
-    $('#party-tab-link').on 'shown', (e) ->
-      messages = model.get('_page.party.chat')
+    $('#party-tab-link').on 'shown', (e) =>
+      messages = @model.get('_page.party.chat')
       return false unless messages?.length > 0
-      self.priv.set 'party.lastMessageSeen', messages[0].id
+      @priv.set 'party.lastMessageSeen', messages[0].id
 
   app.fn
     chat:
