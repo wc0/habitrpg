@@ -259,12 +259,23 @@
 <!-- task edit/options -->
 <taskMeta:>
     <div class="{#unless _page.editing.tasks[:task.id]}visuallyhidden{/} task-options">
-        {{#if brokenChallengeLink(:task)}}
+        {#if brokenChallengeLink(:task)}
             <div class='well'>
-                <p>Broken Challenge Link: this task was part of a challenge, but (a) challenge (or containing group) has been deleted, or (b) the task was deleted from the challenge.</p>
-                <p><a>Keep</a> | <a>Keep all from challenge</a> | <a>Delete</a> | <a>Delete all from challenge</a></p>
+                {{#if groups[:task.group.id].challenges[:task.challenge]}}
+                    <p>Broken Challenge Link: this task was part of a challenge, but has been removed from it. What would you like to do?</p>
+                    <p>
+                       <a x-bind="click:challenges.taskUnsubscribe" data-action="keep" data-tid="{{:task.id}}">Keep It</a>&nbsp;|&nbsp;
+                       <a x-bind="click:challenges.taskUnsubscribe" data-action="remove" data-tid="{{:task.id}}">Remove It</a>
+                    </p>
+                {{else}}
+                    <p>Broken Challenge Link: this task was part of a challenge, but the challenge (or group) has been deleted. What would you like to do with these poor lil' orphans?</p>
+                    <p>
+                        <a x-bind="click:challenges.taskUnsubscribe" data-action="keep-all" data-tid="{{:task.id}}">Keep Them</a>&nbsp;|&nbsp;
+                        <a x-bind="click:challenges.taskUnsubscribe" data-action="remove-all" data-tid="{{:task.id}}">Remove Them</a>
+                    </p>
+                {{/}}
             </div>
-        {{/}}
+        {/}
         <form x-bind="submit:tasks.toggleTaskEdit" >
             <!-- text & notes -->
             <fieldset class="option-group">

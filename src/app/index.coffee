@@ -97,22 +97,13 @@ setupRefLists = (model) ->
 
   ## User
   _.each types, (type) ->
-    model.refList "_page.lists.tasks.#{uid}.#{type}s", "_page.user.priv.tasks", "_page.user.priv.ids.#{type}s"
+    model.refList "_page.lists.tasks.#{uid}.#{type}s", "_page.user.priv.tasks", "_page.user.priv.ids.#{type}s", {deleteRemoved: true}
     true
 
   ## Groups
   _.each model.get('groups'), (g) ->
     gpath = "groups.#{g.id}"
-    model.refList "_page.lists.challenges.#{g.id}", "#{gpath}.challenges", "#{gpath}.ids.challenges"
-
-    ## Groups -> Challenges
-    _.each g.challenges, (c) ->
-      _.each types, (type) ->
-        cpath = "challenges.#{c.id}"
-        model.refList "_page.lists.tasks.#{c.id}.#{type}s", "#{gpath}.#{cpath}.tasks", "#{gpath}.#{cpath}.ids.#{type}s"
-        true
-      true
-    true
+    model.refList "_page.lists.challenges.#{g.id}", "#{gpath}.challenges", "#{gpath}.ids.challenges", {deleteRemoved: true}
 
 # ========== ROUTES ==========
 

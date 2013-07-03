@@ -1,27 +1,6 @@
 {helpers, algos} = require "habitrpg-shared"
 _ = require 'lodash'
 
-#TODO put this in habitrpg-shared
-###
-  We can't always use refLists, but we often still need to get a positional path by id: eg, users.1234.tasks.5678.value
-  For arrays (which use indexes, not id-paths), here's a helper function so we can run indexedPath('users',:user.id,'tasks',:task.id,'value)
-###
-indexedPath = ->
-  _.reduce arguments, (m,v) =>
-    return v if !m #first iteration
-    return "#{m}.#{v}" if _.isString v #string paths
-    return "#{m}." + _.findIndex(@model.get(m),v)
-  , ''
-
-indexedAt = ->
-  path = indexedPath(@,arguments)
-  return undefined unless model.at(path).get()?
-  return model.at(path)
-
-taskInChallenge = (task) ->
-  return undefined unless task?.challenge
-  @model.at "groups.#{task.group.id}.challenges.#{task.challenge}.tasks.#{task.id}"
-
 module.exports = (view) ->
   #misc
   view.fn "percent", (x, y) ->
@@ -40,7 +19,7 @@ module.exports = (view) ->
   view.fn 'int',
     get: (num) -> num
     set: (num) -> [+num]
-  view.fn 'indexedPath', indexedPath
+  view.fn 'indexedPath', helpers.indexedPath
 
   ## Added to Derby core
   #  view.fn "lt", (a, b) -> a < b
@@ -84,11 +63,11 @@ module.exports = (view) ->
 
   #Challenges
   view.fn 'taskInChallenge', (task) ->
-    task?.challenge and taskInChallenge.call(@,task)?.get()
+    task?.challenge and helpers.taskInChallenge.call(@,task)?.get()
   view.fn 'taskAttrFromChallenge', (task, attr) ->
-    taskInChallenge.call(@,task)?.get(attr)
+    helpers.taskInChallenge.call(@,task)?.get(attr)
   view.fn 'brokenChallengeLink', (task) ->
-    task?.challenge and !(taskInChallenge.call(@,task)?.get())
+    task?.challenge and !(helpers.taskInChallenge.call(@,task)?.get())
 
   view.fn 'challengeMemberScore', (member, task) ->
     return unless member

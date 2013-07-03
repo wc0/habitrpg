@@ -36,25 +36,6 @@ module.exports.app = (app) ->
     model.set('_page.tmp.streakBonus', uobj._tmp.streakBonus) if uobj._tmp?.streakBonus
     drop = uobj._tmp?.drop
 
-    # Update challenge statistics
-    # FIXME put this in it's own batchTxn, make batchTxn model.at() ref aware (not just _session.user)
-    # FIXME use reflists for users & challenges
-    #    if (chalTask = taskInChallenge.call({model}, tObj)) and chalTask?.get()
-    #      model._dontPersist = false
-    #      chalTask.incr "value", delta
-    #      chal = model.at "groups.#{tObj.group.id}.challenges.#{tObj.challenge}"
-    #      chalUser = -> indexedPath.call({model}, chal.path(), 'users', {id:uObj.id})
-    #      cu = model.at chalUser()
-    #      unless cu?.get()
-    #        chal.push "users", {id: uObj.id, name: helpers.username(uObj.auth, uObj.profile?.name)}
-    #        cu = model.at chalUser()
-    #      else
-    #        cu.set 'name', helpers.username(uObj.auth, uObj.profile?.name) # update their name incase it changed
-    #      cu.set "#{tObj.type}s.#{tObj.id}",
-    #        value: tObj.value
-    #        history: tObj.history
-    #      model._dontPersist = true
-
     dropCb = ->
       if drop and $?
         model.set '_page.tmp.drop', drop
@@ -116,8 +97,8 @@ module.exports.app = (app) ->
       del: (e) ->
         return unless confirm("Are you sure you want to delete this task?") is true
         $('[rel=tooltip]').tooltip('hide')
-        @priv.del "tasks.#{e.get('id')}"
         e.at().remove()
+        #@priv.del "tasks.#{e.get('id')}" # we're now using {deleteRemoved: true} on refList
 
       ###
         Clear Completed
