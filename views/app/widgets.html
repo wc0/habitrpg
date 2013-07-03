@@ -1,0 +1,20 @@
+<tabs: nonvoid>
+    <ul class="nav {{#if @pills}}nav-pills{{else}}nav-tabs{{/}}">
+        {{@headers}}
+    </ul>
+    <div class="tab-content">
+        {{@content}}
+    </div>
+
+<tab-header:>
+    <li class="{activeTab(_page.active.tabs[@group], @tab, @default)}"
+        data-group="{{@group}}"
+        data-tab="{{@tab}}"
+        x-bind="click:activateTab">
+        <a style='cursor:pointer;'>{{#if @icon}}<i class="icon-{{@icon}}"></i> {{/}}{{@title}}</a>
+    </li>
+
+<tab-content: nonvoid>
+    <div class="tab-pane {activeTab(_page.active.tabs[@group], @tab, @default)}">
+        {@content}
+    </div>

@@ -5,22 +5,21 @@
             <app:rewards:user-gems />
         </span>
 
-        <ul class="nav nav-tabs game-tabs">
-            <li class="active"><a data-toggle='tab' data-target="#profile-customize"><i class='icon-user'></i> Profile</a></li>
-            <li><a data-toggle='tab' data-target="#profile-groups" id='party-tab-link'><i class='icon-heart'></i> Groups</a></li>
-            {#if _page.user.priv.flags.dropsEnabled}
-                <li><a data-toggle='tab' data-target="#profile-inventory"><i class='icon-gift'></i> Inventory</a></li>
-                <li><a data-toggle='tab' data-target="#profile-stable"><i class='icon-leaf'></i> Stable</a></li>
-            {/if}
-            <li><a data-toggle='tab' data-target="#profile-tavern"><i class='icon-eye-close'></i> Tavern</a></li>
-            <li><a data-toggle='tab' data-target="#profile-achievements"><i class='icon-certificate'></i> Achievements</a></li>
-            <li><a data-toggle='tab' data-target="#profile-challenges" id='profile-challenges-tab-link' ><i class='icon-bullhorn'></i> Challenges</a></li>
-            <li><a data-toggle='tab' data-target="#profile-settings"><i class='icon-wrench'></i> Settings</a></li>
-        </ul>
+        <app:widgets:tabs>
+            <@headers>
+                <app:widgets:tab-header group="options" tab="profile" icon="user" title="Profile" default="true"  />
+                <app:widgets:tab-header group="options" tab="groups" icon="heart" title="Groups" />
+                {#if _page.user.priv.flags.dropsEnabled}
+                    <app:widgets:tab-header group="options" tab="inventory" icon="gift" title="Inventory" />
+                    <app:widgets:tab-header group="options" tab="stable" icon="leaf" title="Stable" />
+                {/if}
+                <app:widgets:tab-header group="options" tab="tavern" icon="eye-close" title="Tavern" />
+                <app:widgets:tab-header group="options" tab="achievements" icon="certificate" title="Achievements" />
+                <app:widgets:tab-header group="options" tab="challenges" icon="bullhorn" title="Challenges" />
+                <app:widgets:tab-header group="options" tab="settings" icon="wrench" title="Settings" />
+            </@headers>
 
-        <div class="tab-content">
-
-            <div class="tab-pane active" id="profile-customize">
+            <app:widgets:tab-content group="options" tab="profile" default="true" >
                 <div class='row-fluid'>
                     <div class='span4 border-right'>
                         <app:avatar:customize />
@@ -32,17 +31,17 @@
                         <app:avatar:profile-edit />
                     </div>
                 </div>
-            </div>
+            </app:widgets:tab-content>
 
-            <div class="tab-pane" id="profile-groups">
+            <app:widgets:tab-content group="options" tab="groups">
                 <app:groups:groups-pane />
-            </div>
+            </app:widgets:tab-content>
 
-            <div class="tab-pane" id="profile-achievements">
+            <app:widgets:tab-content group="options" tab="achievements">
                 <app:avatar:achievements profile="{{_page.user.pub}}" />
-            </div>
+            </app:widgets:tab-content>
 
-            <div class="tab-pane" id="profile-inventory">
+            <app:widgets:tab-content group="options" tab="inventory">
                 <div class='row-fluid'>
                     <div class='span6 border-right'>
                         <h2>Inventory</h2>
@@ -53,24 +52,25 @@
                         <app:game-pane:market />
                     </div>
                 </div>
-            </div>
+            </app:widgets:tab-content>
 
-            <div class="tab-pane" id="profile-stable">
+            <app:widgets:tab-content group="options" tab="stable">
                 <app:pets:stable />
-            </div>
+            </app:widgets:tab-content>
 
-            <div class="tab-pane" id="profile-tavern">
+            <app:widgets:tab-content group="options" tab="tavern">
                 <app:groups:group group={_page.tavern} />
-            </div>
+            </app:widgets:tab-content>
 
-            <div class="tab-pane" id="profile-challenges">
+            <app:widgets:tab-content group="options" tab="challenges">
                 <app:challenges:main />
-            </div>
+            </app:widgets:tab-content>
 
-            <div class="tab-pane" id="profile-settings">
+            <app:widgets:tab-content group="options" tab="settings">
                 <app:settings:settings-pane />
-            </div>
-        </div>
+            </app:widgets:tab-content>
+
+        </app:widgets:tabs>
 
     </div>
 

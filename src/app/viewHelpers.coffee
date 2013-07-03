@@ -94,3 +94,5 @@ module.exports = (view) ->
     return unless member
     Math.round(member["#{task.type}s"]?[task.id]?.value) || 0
 
+  view.fn 'activeTab', (currActive, tab, isDefault) ->
+    'active' if (currActive is tab) or (!currActive and isDefault)

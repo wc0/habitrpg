@@ -156,4 +156,10 @@ app.ready (model) ->
       e.at().remove()
       #browser.resetDom(model) if $(el).attr('data-refresh')
 
+    ###
+      Activate Tabs (TODO: move this into widgets.coffee when we have enough to move there
+    ###
+    activateTab: (e, el) ->
+      @model.set "_page.active.tabs.#{$(el).attr('data-group')}", $(el).attr('data-tab')
+
   app.user.cron()
