@@ -28,7 +28,7 @@ module.exports.app = (app, model) ->
       disableAds = unless (@priv.get('flags.ads') is 'hide') then '' else 'Disable Ads, '
 
       StripeCheckout.open
-        key: model.get('_session.stripePubKey')
+        key: @model.get('_session.stripePubKey')
         address: false
         amount: 500
         name: "Checkout"
