@@ -1,5 +1,5 @@
 <modals:>
-    <app:modals:modal modalId='new-stuff-modal' header="New Stuff">
+    <app:widgets:modal modalId='new-stuff-modal' header="New Stuff">
         <table><tr>
             <td><div class=NPC-Bailey></div></td>
             <td>
@@ -97,7 +97,7 @@
         <@footer>
             <button class="btn" data-dismiss="modal" aria-hidden="true" x-bind="click:user.closeNewStuff">Close</button>
         </@footer>
-    </app:modals:modal>
+    </app:widgets:modal>
 
 <hiding-bailey:>
     {#if equal(_page.user.priv.flags.newStuff,'show')}

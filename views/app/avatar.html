@@ -1,11 +1,11 @@
 <modals:>
     {{#each _page.membersArray as :member}}
-        <app:modals:modal modalId="avatar-modal-{{:member.id}}">
+        <app:widgets:modal modalId="avatar-modal-{{:member.id}}">
             <app:avatar:profile profile={{_page.members[:member.id]}} />
             <@footer>
                 <button data-dismiss="modal" class="btn btn-success">Ok</button>
             </@footer>
-        </app:modals:modal>
+        </app:widgets:modal>
     {{/}}
 
 <avatar:>
