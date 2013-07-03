@@ -66,7 +66,7 @@ module.exports.app = (app) ->
     This is how we handle app.score for todos & dailies. Due to Derby's special handling of `checked={:task.completd}`,
     the above function doesn't work so we need a listener here
   ###
-  app.model.on 'change', '_page.user.priv.tasks.*.completed', (i, completed, previous, isLocal, passed) ->
+  app.model.on 'change', '_page.user.priv.tasks.*.completed', (i, completed, previous, passed) ->
     return if passed?.cron # Don't do this stuff on cron
     direction = if completed then 'up' else 'down'
     score(app.model, i, direction, true)
