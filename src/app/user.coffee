@@ -111,7 +111,7 @@ This takes an infinite array of single day entries [day day day day day...], and
 of averages, condensing more the further back in time we go. Eg, 7 entries each for last 7 days; 4 entries for last
 4 weeks; 12 entries for last 12 months; 1 entry per year before that: [day*7 week*4 month*12 year*infinite]
 ###
-preenHistory = (history) ->
+preenItemHistory = (history) ->
   history = _.filter history, ((h) -> !!h) # discard nulls (corrupted somehow)
   preen = (amount, groupBy) ->
     groups = undefined
@@ -141,19 +141,19 @@ preenHistory = (history) ->
   newHistory
 
 minHistLen = 7
-module.exports.preenHistory = preenHistory = (uobj, options) ->
+module.exports.preenUserHistory = preenUserHistory = (uobj, options) ->
   paths = options?.paths or {}
 
   _.each uobj.tasks, (task) ->
     if task.history?.length > minHistLen
-      task.history = preenHistory(task.history)
+      task.history = preenItemHistory(task.history)
       paths["tasks.#{task.id}.history"] = true
 
   if uobj.history?.exp?.length > minHistLen
-    uobj.history.exp = preenHistory(uobj.history.exp)
+    uobj.history.exp = preenItemHistory(uobj.history.exp)
     paths['history.exp'] = true
   if uobj.history?.todos?.length > minHistLen
-    uobj.history.todos = preenHistory(uobj.history.todos)
+    uobj.history.todos = preenItemHistory(uobj.history.todos)
     paths['history.todos'] = true
 
 
@@ -172,7 +172,7 @@ module.exports.app = (app) ->
           uobj = transformForAPI @pub.get(), @priv.get()
           paths = {}
           algos.cron uobj, {paths}
-          preenHistory uobj, {paths}
+          preenUserHistory uobj, {paths}
           if _.size(paths) > 0
             if (delete paths['stats.hp'])? # we'll set this manually so we can get a cool animation
               hp = uobj.stats.hp
