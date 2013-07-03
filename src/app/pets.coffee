@@ -27,10 +27,10 @@ module.exports.app = (app) ->
         myItems.push 'pets', "#{egg.name}-#{potion}", ->
           myItems.remove "eggs", eggIdx, 1
           myItems.remove "hatchingPotions", potIdx, 1
-          DERBY.app.view.render model, {}
-#          $(event.target).remove(); $(ui.draggable[0]).remove()
           model.set "_page.errors.stable", "Your egg hatched! Select your pet from the stables."
           model.set "_page.active.tabs.options", "stable"
+#          $(event.target).remove(); $(ui.draggable[0]).remove()
+          app.browser.resetDom()
 
   app.model.on 'insert', '_page.user.pub.items.hatchingPotions', ->initDraggable(app.model)
   app.model.on 'insert', '_page.user.pub.items.eggs', ->initDraggable(app.model)

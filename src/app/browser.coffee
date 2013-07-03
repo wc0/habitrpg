@@ -108,8 +108,8 @@ module.exports.app = (app) ->
       # ----------------
       resetDom: ->
         app.dom.clear()
-        #app.view.render @model, app.view._lastRender.ns, app.view._lastRender.context
-        app.view.render @model, {}
+        app.view.render @model, app.view._lastRender.ns ? '', app.view._lastRender.context ? {}
+        #app.view.render @model, {}
 
       # ----------------
       # Setup Tooltips
