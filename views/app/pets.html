@@ -44,8 +44,8 @@
 
 <inventory:>
     <small>Drag a potion onto an egg to pour.</small>
-    {#if _page.errors.pets}
-        <div class="alert alert-success">{_page.errors.pets}</div>
+    {#if _page.errors.inventory}
+        <div class="alert alert-success">{_page.errors.inventory}</div>
     {/}
     <menu type="list" class="inventory-list">
         <li class="customize-menu">
@@ -77,6 +77,9 @@
     </menu>
 
 <stable:>
+    {#if _page.errors.stable}
+        <div class="alert alert-success">{_page.errors.stable}</div>
+    {/}
     <!-- tables, I know - I spent a good 1h here with divs & row-fluid and can't get it working, so screw it -->
     <table><tr>
         <td><div class=NPC-Matt></div></td>

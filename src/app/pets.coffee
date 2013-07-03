@@ -21,16 +21,16 @@ module.exports.app = (app) ->
         pets = myItems.get "pets"
 
         if pets and ~pets.indexOf("#{egg.name}-#{potion}")
-          return model.set("_page.errors.pets", "You already have that pet, hatch a different combo.")
+          return model.set("_page.errors.inventory", "You already have that pet, hatch a different combo.")
         return unless confirm("Hatch a(n) #{potion} #{egg.name}?") is true
 
         myItems.push 'pets', "#{egg.name}-#{potion}", ->
           myItems.remove "eggs", eggIdx, 1
           myItems.remove "hatchingPotions", potIdx, 1
-          $(event.target).remove(); $(ui.draggable[0]).remove()
-          model.set "_page.errors.pets", "Your egg hatched! Visit your stable to equip your pet."
-          #DERBY.app.view.render model, {}
-          $('#profile-stable').tab('show')
+          DERBY.app.view.render model, {}
+#          $(event.target).remove(); $(ui.draggable[0]).remove()
+          model.set "_page.errors.stable", "Your egg hatched! Select your pet from the stables."
+          model.set "_page.active.tabs.options", "stable"
 
   app.model.on 'insert', '_page.user.pub.items.hatchingPotions', ->initDraggable(app.model)
   app.model.on 'insert', '_page.user.pub.items.eggs', ->initDraggable(app.model)
