@@ -54,5 +54,5 @@ module.exports.app = (app) ->
         Go to party chat
       ###
       gotoPartyChat: ->
-        @model.set '_page.active.gamePane', true, ->
-          $('#party-tab-link').tab('show')
+        @model.set '_page.active.gamePane', true
+        @model.set '_page.active.tabs.options', 'groups'
