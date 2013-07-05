@@ -10,9 +10,9 @@ nconf.argv().env().file(path.join(__dirname + "/config.json")).defaults({
    'NODE_ENV': 'development'
 });
 
-/*_.each(nconf.get(), function(v,k){
+_.each(nconf.get(), function(v,k){
     process.env[k] = v; // for any code not using nconf (eg, derby internal)
-});*/
+});
 
 /*var agent;
 if (process.env.NODE_ENV === 'development') {

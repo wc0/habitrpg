@@ -5,7 +5,7 @@
   "main": "./server.js",
   "dependencies": {
     "habitrpg-shared": "git://github.com/HabitRPG/habitrpg-shared#challenges-0.5",
-    "derby": "git://github.com/codeparty/derby#master",
+    "derby": "git://github.com/lefnire/derby#habitrpg0.5",
     "derby-auth": "git://github.com/lefnire/derby-auth#0.5",
     "derby-ui-boot": "git://github.com/codeparty/derby-ui-boot#master",
     "derby-i18n": "git://github.com/lefnire/derby-i18n#0.5",
