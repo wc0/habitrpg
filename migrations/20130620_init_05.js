@@ -1,5 +1,10 @@
 //mongo habitrpg ./node_modules/lodash/lodash.js migrations/20130620_init_05.js
 
+
+// Drop some collections
+db.sessions.drop();
+db.myDupesCollection.drop();
+
 var un_registered = {
         "auth.local": {$exists: false},
         "auth.facebook": {$exists: false}
@@ -74,10 +79,6 @@ db.users.find(registered).forEach(function(user){
     }
 
 })
-
-// Drop some collections
-db.sessions.drop();
-db.myDupesCollection.drop();
 
 // Add indices
 db.usersPrivate.ensureIndex( { _id: 1, apiToken: 1 }, {background: true} )
