@@ -1,14 +1,18 @@
-var nodemailer = require("nodemailer");
-
 // Load nconf and define default configuration values if config.json or ENV vars are not found
 var path = require('path')
-var conf = require('nconf');
-conf.argv().env().file(path.join(__dirname + "/config.json")).defaults({
+    ,nconf = require('nconf')
+    ,_ = require('lodash');
+
+nconf.argv().env().file(path.join(__dirname + "/config.json")).defaults({
    'PORT': 3000,
    'IP': '0.0.0.0',
    'BASE_URL': 'http://localhost',
    'NODE_ENV': 'development'
 });
+
+/*_.each(nconf.get(), function(v,k){
+    process.env[k] = v; // for any code not using nconf (eg, derby internal)
+});*/
 
 /*var agent;
 if (process.env.NODE_ENV === 'development') {
@@ -22,45 +26,57 @@ if (process.env.NODE_ENV === 'development') {
 }*/
 
 process.on('uncaughtException', function (error) {
+    try {
+        var nodemailer = require("nodemailer");
 
-    function sendEmail(mailData) {
+        function sendEmail(mailData) {
 
-        var creds = {
-            service: process.env.SMTP_SERVICE,
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS
-            }
-        };
+            var creds = {
+                service: nconf.get('SMTP_SERVICE'),
+                auth: {
+                    user: nconf.get('SMTP_USER'),
+                    pass: nconf.get('SMTP_PASS')
+                }
+            };
 
-        if (!nodemailer || !creds.service || !creds.auth.user || !creds.auth.pass) return;
+            if (!nodemailer || !creds.service || !creds.auth.user || !creds.auth.pass) return;
 
-        // create reusable transport method (opens pool of SMTP connections)
-        var smtpTransport = nodemailer.createTransport("SMTP", creds);
+            // create reusable transport method (opens pool of SMTP connections)
+            var smtpTransport = nodemailer.createTransport("SMTP", creds);
 
-        // send mail with defined transport object
-        smtpTransport.sendMail(mailData, function(error, response){
-            if(error){
-                console.log(error);
-            }else{
-                console.log("Message sent: " + response.message);
-            }
+            // send mail with defined transport object
+            smtpTransport.sendMail(mailData, function(error, response){
+                if(error){
+                    console.log(error);
+                }else{
+                    console.log("Message sent: " + response.message);
+                }
 
-            smtpTransport.close(); // shut down the connection pool, no more messages
+                smtpTransport.close(); // shut down the connection pool, no more messages
+            });
+        }
+
+        sendEmail({
+            from: "HabitRPG <admin@habitrpg.com>",
+            to: "tylerrenelle@gmail.com",
+            subject: "HabitRPG Error",
+            text: error.stack
         });
-    }
+        console.error(error.stack);
 
-    sendEmail({
-        from: "HabitRPG <admin@habitrpg.com>",
-        to: "tylerrenelle@gmail.com",
-        subject: "HabitRPG Error",
-        text: error.stack
-    });
-    console.log(error.stack);
+    } catch (err) {
+        console.error(err)
+    }
 });
 
-require('coffee-script') // remove intermediate compilation requirement
-require('./src/server').listen(process.env.PORT || 3000, process.env.IP || '0.0.0.0');
+require('coffee-script'); // remove intermediate compilation requirement
+require('derby').run(__dirname + '/src/server', nconf.get('PORT'));
+
+/*if (nconf.get('NODE_ENV') === 'production') {
+    require('derby').run(__dirname + '/src/server', nconf.get('PORT'));
+} else {
+    require('./src/server').listen(nconf.get('PORT'), conf.get('IP'));
+}*/
 
 // Note: removed "up" module, which is default for development (but interferes with and production + PaaS)
 // Restore to 5310bb0 if I want it back (see https://github.com/codeparty/derby/issues/165#issuecomment-10405693)
