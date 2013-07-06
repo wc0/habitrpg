@@ -82,3 +82,8 @@ db.users.find(registered).forEach(function(user){
 
 // Add indices
 db.usersPrivate.ensureIndex( { _id: 1, apiToken: 1 }, {background: true} )
+
+// FIXME this should be in derby-auth, but it's throwing errors when performed via mongoskin
+db.auths.ensureIndex( { 'facebook.id': 1 }, {background: true} )
+db.auths.ensureIndex( { 'local.username': 1 }, {background: true} )
+db.auths.ensureIndex( { 'local.username': 1, 'local.hashed_password': 1 }, {background: true} )
