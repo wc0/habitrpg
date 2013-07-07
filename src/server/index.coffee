@@ -30,7 +30,7 @@ if nconf.get('REDIS_HOST')
   redis.auth nconf.get('REDIS_PASSWORD')
 else
   redis = require("redis").createClient()
-redis.select nconf.get('REDIS_DATABASE')
+redis.select +nconf.get('REDIS_DATABASE')
 
 # Get Mongo configuration
 mongoUrl = nconf.get('NODE_DB_URI')
