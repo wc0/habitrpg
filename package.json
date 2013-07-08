@@ -36,6 +36,7 @@
     "passport-local": "~0.1.6"
   },
   "devDependencies": {
+    "ottypes": "~1.0.0",
     "expect.js": "~0.2.0",
     "optimist": "~0.5.2",
     "superagent": "~0.12.4",
