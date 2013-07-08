@@ -1,5 +1,8 @@
-# Turn a mongo db into a live-db
-# you should probably redis-cli flushdb; before running this script
+# TODO
+# 1. run npm install
+# 2. add indexes
+# 3. ask for configurations and create a config.json
+# 4. add in optimist with nconf (https://github.com/flatiron/nconf/blob/master/README.md#hierarchical-configuration)
 
 redis = require 'redis'
 mongo = require 'mongoskin'
