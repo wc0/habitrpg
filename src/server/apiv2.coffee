@@ -5,7 +5,7 @@ util = require('util')
 _ = require 'lodash'
 algos = require 'habitrpg-shared/script/algos'
 helpers = require 'habitrpg-shared/script/helpers'
-validator = require 'derby-auth/node_modules/validator'
+validator = require 'validator'
 check = validator.check
 sanitize = validator.sanitize
 

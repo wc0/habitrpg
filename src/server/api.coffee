@@ -3,7 +3,7 @@ router = new express.Router()
 
 _ = require 'lodash'
 {algos, helpers} = require 'habitrpg-shared'
-validator = require 'derby-auth/node_modules/validator'
+validator = require 'validator'
 check = validator.check
 sanitize = validator.sanitize
 u = require '../app/user.coffee'
