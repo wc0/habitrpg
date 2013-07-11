@@ -28,7 +28,27 @@ db.users.find(registered).forEach(function(user){
     });
 
     // Migrate "rest" flag to preferences (so it's public)
-    user.preferences.resting = user.flags.rest;
+    // We're getting false positives without this super-explicit check
+    if (user.flags.rest === true) user.preferences.resting = true;
+
+    // Give them their default display name
+    if ( !user.profile || !user.profile.name ) {
+        if (!user.profile) user.profile = {};
+        if (!!user.auth.facebook) {
+            if (!!user.auth.facebook.displayName) {
+                user.profile.name = user.auth.facebook.displayName;
+            } else {
+                var fb = user.auth.facebook;
+                user.profile.name = !!fb._raw ? fb.name.givenName + " " + fb.name.familyName : fb.name;
+            }
+        } else {
+            try {
+                user.profile.name = user.auth.local.username;
+            } catch (err) {
+                printjson(user.auth);
+            }
+        }
+    }
 
     user.tasks = _.transform(user.tasks, function(acc,v,k,obj) {
         if (!!k && !_.contains(_.keys(v),'$spec')) acc[k] = v;
