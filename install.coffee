@@ -14,6 +14,7 @@ mongo_port = process.env.MONGO_PORT or 27017
 mongo_db   = argv.db or process.env.MONGO_DB or 'habitrpg'
 db         = mongo.db "#{mongo_host}:#{mongo_port}/#{mongo_db}?auto_reconnect"
 
+rc = undefined
 if process.env.REDIS_PORT and process.env.REDIS_HOST
   rc = redis.createClient(process.env.REDIS_PORT, process.env.REDIS_HOST)
 else

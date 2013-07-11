@@ -25,6 +25,7 @@ Error.stackTraceLimit = Infinity if nconf.get('NODE_ENV') is 'development'
 expressApp = module.exports = express()
 
 # Get Redis configuration
+redis = undefined
 if nconf.get('REDIS_HOST')
   redis = require("redis").createClient nconf.get('REDIS_PORT'), nconf.get('REDIS_HOST')
   redis.auth nconf.get('REDIS_PASSWORD')
