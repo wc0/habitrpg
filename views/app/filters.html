@@ -9,19 +9,24 @@
       </li>
       {#each _page.user.priv.tags as :tag}
         <li class="{#if _page.user.priv.filters[:tag.id]}active{/}" style='position:relative;'>
-            {#if and(_page.editing.tags,not(:tag.challenge))}
-                <div class="input-append option-group tag-editing" >
-                    <input class="input input-small option-content tag-editing-pill" type="text" value='{:tag.name}' />
-                    <span class="add-on tag-editing-pill"><a class='pull-right' x-bind=click:filters.deleteTag data-index="{$index}"><i class='icon-trash'></i></a></span>
-                </div>
-            {else}
-                <a data-tag-id="{{:tag.id}}" x-bind="click:filters.toggleFilterByTag">{:tag.name}</a>
-            {/}
+
+            <!-- (#if editing) we have to do it in the class -->
+            <div class="input-append option-group tag-editing {#unless and(_page.editing.tags,not(:tag.challenge))}hidden{/}" >
+                <input class="input input-small option-content tag-editing-pill" type="text" value='{:tag.name}' />
+                <span class="add-on tag-editing-pill">
+                    <a class='pull-right' x-bind=click:filters.deleteTag data-id="{{:tag.id}}">
+                        <i class='icon-trash'></i>
+                    </a>
+                </span>
+            </div>
+
+            <!-- (#else) -->
+            <a data-tag-id="{{:tag.id}}" class="{#if and(_page.editing.tags,not(:tag.challenge))}hidden{/}" x-bind="click:filters.toggleFilterByTag">{:tag.name}</a>
         </li>
       {/}
       <li>
           {#if _page.editing.tags}
-              <form class='form-inline' x-bind="submit::filters.createTag">
+              <form class='form-inline' x-bind="submit:filters.createTag">
                   <div class="input-append tag-editing">
                       <input class="span2 tag-editing-pill" type="text" value={_page.new.tag} placeholder="New Tag" />
                       <button class="add-on tag-editing-pill" type="submit">Add</button>

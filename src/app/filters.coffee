@@ -1,4 +1,5 @@
 _ = require 'lodash'
+{helpers} = require 'habitrpg-shared'
 
 module.exports.app = (app) ->
   {model} = app
@@ -22,19 +23,18 @@ module.exports.app = (app) ->
         @priv.set 'filters', {}
 
       deleteTag: (e, el) ->
-        tags = @priv.get('tags')
-        tag = @priv.at "tags.#{$(el).attr('data-index')}"
-        tagId = tag.get('id')
+        tid = $(el).attr('data-id')
+        tag = helpers.indexedAt.call @, "_page.user.priv.tags", {id: tid}
 
         #something got corrupted, let's clear the corrupt tags
-        unless tagId
-          @priv.set 'tags', _.filter( tags, ((t)-> t?.id) )
+        unless tid
+          @priv.set 'tags', _.filter( @priv.get('tags'), ((t)-> t?.id) )
           @priv.set 'filters', {}
           return
 
-        @priv.del "filters.#{tagId}"
+        @priv.del "filters.#{tid}"
         tag.remove()
 
         # remove tag from all tasks
-        _.each @priv.get("tasks"), (task) => @priv.del "tasks.#{task.id}.tags.#{tagId}"; true
+        _.each @priv.get("tasks"), (task) => @priv.del "tasks.#{task.id}.tags.#{tid}"; true
 
