@@ -36,7 +36,7 @@ module.exports.app = (app) ->
           contributor: @pub.get('backer.contributor')
           npc: @pub.get('backer.npc')
           text: text
-          user: helpers.username(@priv.get('auth'), @pub.get('profile.name'))
+          user: helpers.username @pub.get('profile.name')
           timestamp: +new Date
 
         group.unshift 'chat', message, ->group.remove('chat', 200)
