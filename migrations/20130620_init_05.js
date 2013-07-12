@@ -29,7 +29,7 @@ db.users.find(registered).forEach(function(user){
 
     // Migrate "rest" flag to preferences (so it's public)
     // We're getting false positives without this super-explicit check
-    if (user.flags.rest === true) user.preferences.resting = true;
+    if (user.flags && user.flags.rest === true) user.preferences.resting = true;
 
     // Give them their default display name
     if ( !user.profile || !user.profile.name ) {
