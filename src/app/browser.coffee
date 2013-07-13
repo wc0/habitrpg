@@ -227,8 +227,7 @@ module.exports.app = (app) ->
       #  These need to be handled in app.on('render'), see https://groups.google.com/forum/?fromgroups=#!topic/derbyjs/x8FwdTLEuXo
       # ----------------
       getExternalScripts: ->
-        model = @model
-        async.nextTick ->
+        async.nextTick =>
 
           # -- Stripe --
           $.getScript('//checkout.stripe.com/v2/checkout.js')
@@ -236,16 +235,16 @@ module.exports.app = (app) ->
           # -- Google Analytics --
           # Note, Google Analyatics giving beef if in this file. Moved back to index.html. It's ok, it's async - really the
           # syncronous requires up top are what benefit the most from this file.
-          if model.get('_session.flags.nodeEnv') is 'production'
+          if @model.get('_session.flags.nodeEnv') is 'production'
             window._gaq = [["_setAccount", "UA-33510635-1"], ["_setDomainName", "habitrpg.com"], ["_trackPageview"]]
             $.getScript ((if "https:" is document.location.protocol then "https://ssl" else "http://www")) + ".google-analytics.com/ga.js"
 
           # -- Amazon Affiliate --
-          #if model.get('_page.user.priv.flags.ads') isnt 'hide'
+          #if @model.get('_page.user.priv.flags.ads') isnt 'hide'
           #  $.getScript '//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js'
           #  (window.adsbygoogle ?= []).push({})
 
-          unless (model.get('_session.flags.isMobile') is true)
+          unless @model.get('_session.flags.isMobile') is true
 
             # -- AddThis--
             $.getScript("//s7.addthis.com/js/250/addthis_widget.js#pubid=lefnire")
@@ -263,11 +262,12 @@ module.exports.app = (app) ->
   ###
   app.on 'render', (ctx) ->
     #restoreRefs(model)
-    app.browser.setupSortable()
-    app.browser.setupTooltips()
-    app.browser.setupTour()
-    app.browser.setupDatepicker()
-    app.browser.initStickyHeader() unless @model.get('_session.flags.isMobile')
-    app.browser.getExternalScripts() unless @model.get('_session.flags.isMobile')
+    unless @model.get('_session.flags.isMobile') is true
+      app.browser.setupSortable()
+      app.browser.setupTooltips()
+      app.browser.setupTour()
+      app.browser.setupDatepicker()
+      app.browser.initStickyHeader()
+    app.browser.getExternalScripts()
 
 
