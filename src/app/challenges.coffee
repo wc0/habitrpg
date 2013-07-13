@@ -205,12 +205,14 @@ module.exports.app = (app) ->
 
         switch $(el).attr('data-action')
           when 'keep'
-            e.at().del('challenge')
-            e.at().del('group')
+            @priv.del "tasks.#{tobj.id}.challenge"
+            @priv.del "tasks.#{tobj.id}.group"
           when 'keep-all'
             app.challenges.unsubscribe.call @, deletedChal, true
           when 'remove'
-            e.at().del()
+            path = "_page.lists.tasks.#{@uid}.#{tobj.type}s"
+            if ~(i = _.findIndex @model.get(path), {id: tobj.id})
+              @model.remove path, i
           when 'remove-all'
             app.challenges.unsubscribe.call @, deletedChal, false
 
