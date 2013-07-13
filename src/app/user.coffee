@@ -202,7 +202,7 @@ module.exports.app = (app) ->
             #candidate = {0:'items.armor', 1:'items.head', 2:'items.shield', 3:'items.weapon', 4:'stats.gp'}[Math.random()*5|0]
             candidate = {0:'armor', 1:'head', 2:'shield', 3:'weapon'}[Math.random()*4|0]
             loseThisItem = candidate if owned[candidate] > 0
-          @pub.set "items.#{lostThisItem}", 0
+          @pub.set "items.#{loseThisItem}", 0
 
         app.items.updateStore()
 
