@@ -8,9 +8,8 @@ module.exports.app = (app) ->
 
   initDraggable = (model) ->
     myItems = model.at('_page.user.pub.items')
-    $('.hatching-potion-draggable').draggable()
+    $('.hatching-potion-draggable').draggable revert: 'valid'
     $('.egg-droppable').droppable
-      revert: 'invalid'
       accept: ".hatching-potion-draggable"
       activeClass: "ui-state-hover"
       hoverClass: "ui-state-active"
