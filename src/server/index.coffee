@@ -47,7 +47,7 @@ store = derby.createStore(
 
 store.on 'bundle', (browserify) ->
   vendorScripts = [
-    "jquery-ui-1.10.2/jquery-1.9.1"
+    "jquery-ui-1.10.3/jquery-1.9.1"
     "jquery.cookie.min"
     "bootstrap/js/bootstrap.min"
     "jquery.bootstrap-growl.min"
@@ -56,12 +56,12 @@ store.on 'bundle', (browserify) ->
   ]
   # FIXME check if mobile
   vendorScripts = vendorScripts.concat [
-    "jquery-ui-1.10.2/ui/jquery.ui.core"
-    "jquery-ui-1.10.2/ui/jquery.ui.widget"
-    "jquery-ui-1.10.2/ui/jquery.ui.mouse"
-    "jquery-ui-1.10.2/ui/jquery.ui.sortable"
-    "jquery-ui-1.10.2/ui/jquery.ui.draggable"
-    "jquery-ui-1.10.2/ui/jquery.ui.droppable"
+    "jquery-ui-1.10.3/ui/jquery.ui.core"
+    "jquery-ui-1.10.3/ui/jquery.ui.widget"
+    "jquery-ui-1.10.3/ui/jquery.ui.mouse"
+    "jquery-ui-1.10.3/ui/jquery.ui.sortable"
+    "jquery-ui-1.10.3/ui/jquery.ui.draggable"
+    "jquery-ui-1.10.3/ui/jquery.ui.droppable"
     "sticky"
   ]
   vendorScripts.forEach (s) -> browserify.add "#{publicDir}/vendor/#{s}.js"
