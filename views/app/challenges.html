@@ -10,15 +10,7 @@
             {{#unless _page.party.id}}
                 Join a party first.
             {{else}}
-                {#if _page.new.challenge}
-                    <app:challenges:create-form />
-                {else}
-                    <!-- FIXME https://github.com/codeparty/derby/issues/267, see _page.guilds.challenges below -->
-                    <app:challenges:create-button type='party' gid={{_page.party.id}} text='Party'/>
-                    {#each _page.lists.challenges[_page.party.id] as :challenge}
-                        <app:challenges:listing challenge={:challenge} />
-                    {/}
-                {/}
+                <app:challenges:list type="party" gid="{{_page.party.id}}" text="Party" list="{_page.lists.challenges[_page.party.id]}" />
             {{/}}
         </app:widgets:tab-content>
 
@@ -31,34 +23,31 @@
             <div class="tab-content">
                 {{#each _page.guilds as :guild}}
                     <div class="tab-pane {{#if equal($index,0)}}active{{/}}" id="challenges-guild-{{:guild.id}}">
-                        {#if _page.new.challenge}
-                            <app:challenges:create-form />
-                        {else}
-                            <app:challenges:create-button type='guild' gid={{:guild.id}} text='Guild' />
-                            {#each _page.lists.challenges[:guild.id] as :challenge}
-                                <app:challenges:listing challenge={:challenge} />
-                            {/}
-                            <hr/>
-                        {/}
+                        <app:challenges:list type="guild" gid="{{:guild.id}}" text="Guild" list="{_page.lists.challenges[:guild.id]}" />
                     </div>
                 {{/}}
             </div>
         </app:widgets:tab-content>
 
         <app:widgets:tab-content group="challenges" tab="public">
-            {#if _page.new.challenge}
-                <app:challenges:create-form />
-            {else}
-                <app:challenges:create-button type='public' gid='habitrpg' text='Public' />
-                {#each _page.lists.challenges.habitrpg as :challenge}
-                    <app:challenges:listing challenge={:challenge} />
-                {/}
-            {/}
+            <app:challenges:list type="public" gid="habitrpg" text="Public" list="{_page.lists.challenges.habitrpg}" />
         </app:widgets:tab-content>
 
     </app:widgets:tabs>
 
-<listing:>
+<list:>
+    <div class="{#unless _page.new.challenge}hidden{/}">
+        <app:challenges:create-form />
+    </div>
+    <div class="{#if _page.new.challenge}hidden{/}">
+        <app:challenges:create-button type='{{@type}}' gid={{@gid}} text={{@text}} />
+        {#each @list as :challenge}
+            <app:challenges:list-entry challenge={:challenge} />
+        {/}
+        <hr/>
+    </div>
+
+<list-entry:>
     <div class="accordion-group">
         <div class="accordion-heading">
             <ul class='pull-right challenge-accordion-header-specs'>
