@@ -39,7 +39,6 @@
   <br/>
   <div id="notification-area"></div>
   <div id="wrap">
-    <app:alerts:flash />
     {#if _page.user.pub.preferences.hideHeader}<app:settings:menu />{/} <!-- if they hide the header, we still need user-menu visible -->
     <div class="exp-chart {#unless _page.charts.exp}hidden{/}"></div>
 

@@ -35,6 +35,11 @@
 
         <div class='jumbotron masthead'>
             <div class='container'>
+                {#if _session.flash.error}
+                <ul class="unstyled alert alert-error">
+                    {#each _session.flash.error as :error}<li>{:error}</li>{/}
+                </ul>
+                {/}
                 <h1><img src="/img/logo/habitrpg_pixel.png" alt="HabitRPG"/></h1>
                 <p>A habit building program which treats your life like a Role Playing Game. Level up as you succeed, lose HP as you fail, earn money to buy weapons and armor.</p>
                 <a data-toggle="modal" data-target="#login-modal" class='btn btn-primary btn-small'>Play</a>

@@ -95,7 +95,7 @@ strategies =
 options =
   site:
     domain: nconf.get('BASE_URL')
-  passport: {registerCallback}
+  passport: {registerCallback, failureRedirect: "/home"}
 
 # This has to happen before our middleware stuff
 auth.store(store, mongo, strategies)

@@ -106,10 +106,3 @@
              data-toggle=modal data-target='#new-stuff-modal'
              ></div>
     {/}
-
-<flash:>
-    {#if _session.flash.error}
-        <ul class="unstyled alert alert-error">
-            {#each _session.flash.error as :error}<li>{:error}</li>{/}
-        </ul>
-    {/}
