@@ -63,7 +63,7 @@
         <div class="accordion-heading">
             <ul class='pull-right challenge-accordion-header-specs'>
                 <li>
-                    {count(@challenge.users)} Subscribers
+                    {count(@challenge.members)} Subscribers
                 </li>
                 <li>
                     <!-- prize -->
@@ -125,7 +125,7 @@
                 </div>
 
                 <h3>Statistics</h3>
-                {#each @challenge.users as :member}
+                {#each @challenge.members as :member}
                     <h4>{:member.name}</h4>
                     <div class="grid">
                         <div class="module">

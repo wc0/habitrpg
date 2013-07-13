@@ -31,10 +31,10 @@ module.exports.app = (app) ->
       if (chalTask = helpers.taskInChallenge.call ctx, tobj)? and chalTask.get()
         chalTask.increment "value", value - previous
         chal = model.at "groups.#{tobj.group.id}.challenges.#{tobj.challenge}"
-        chalUser = -> helpers.indexedAt.call(ctx, chal.path(), 'users', {id:pub.id})
+        chalUser = -> helpers.indexedAt.call(ctx, chal.path(), 'members', {id:pub.id})
         cu = chalUser()
         unless cu?.get()
-          chal.push "users", {id: pub.id, name: model.get(pub.profile.name)}
+          chal.push "members", {id: pub.id, name: model.get(pub.profile.name)}
           cu = model.at chalUser()
         else
           cu.set 'name', pub.profile.name # update their name incase it changed
@@ -59,7 +59,7 @@ module.exports.app = (app) ->
 #    async.each _.toArray(model.get('groups')), (g) ->
 #      async.each _.toArray(g.challenges), (chal) ->
 #        async.each _.toArray(chal.tasks), (task) ->
-#          async.each _.toArray(chal.users), (member) ->
+#          async.each _.toArray(chal.members), (member) ->
 #            if (history = member?["#{task.type}s"]?[task.id]?.history) and !!history
 #              data = google.visualization.arrayToDataTable _.map(history, (h)-> [h.date,h.value])
 #              options =
@@ -159,7 +159,7 @@ module.exports.app = (app) ->
         # Add all challenge's tasks to user's tasks
         currChallenges = @pub.get('challenges')
         @pub.unshift('challenges', chal.id) unless currChallenges and ~currChallenges.indexOf(chal.id)
-        e.at().push "users",
+        e.at().push "members",
           id: @uid
           name: @pub.get('profile.name')
         app.challenges.syncChalToUser(chal)
@@ -176,8 +176,8 @@ module.exports.app = (app) ->
           @pub.remove("challenges", i, 1)
 
         # Remove user from challenge
-        if ~(i = _.findIndex chal.users, {id: @uid})
-          @model.remove "groups.#{chal.group.id}.challenges.#{chal.id}.users", i, 1
+        if ~(i = _.findIndex chal.members, {id: @uid})
+          @model.remove "groups.#{chal.group.id}.challenges.#{chal.id}.members", i, 1
 
         # Remove tasks from user
         async.each chal.habits.concat(chal.dailys.concat(chal.todos.concat(chal.rewards))), (task) =>
@@ -197,7 +197,7 @@ module.exports.app = (app) ->
         tobj = tasks[$(el).attr("data-tid")]
         deletedChal =
           id: tobj.challenge
-          users: [@uid]
+          members: [@uid]
           habits: _.where tasks,  {type: 'habit', challenge: tobj.challenge}
           dailys: _.where tasks,  {type: 'daily', challenge: tobj.challenge}
           todos: _.where tasks,   {type: 'todo', challenge: tobj.challenge}
