@@ -31,17 +31,17 @@ module.exports.app = (app) ->
       growlNotification(html, type)
 
     # Setup listeners which trigger notifications
-    pub.on 'change', 'stats.hp', (captures, args) ->
-      num = captures - args
+    pub.on 'change', 'stats.hp', (value, previous) ->
+      num = value - previous
       rounded = Math.abs(num.toFixed(1))
       if num < 0
         statsNotification "<i class='icon-heart'></i> - #{rounded} HP", 'hp' # lost hp from purchase
       else if num > 0
         statsNotification "<i class='icon-heart'></i> + #{rounded} HP", 'hp' # gained hp from potion/level?
 
-    pub.on 'change', 'stats.exp', (captures, args, isLocal, silent=false) ->
+    pub.on 'change', 'stats.exp', (value, previous) ->
       # unless silent
-      num = captures - args
+      num = value - previous
       rounded = Math.abs(num.toFixed(1))
       if num < 0 and num > -50 # TODO fix hackey negative notification supress
         statsNotification "<i class='icon-star'></i> - #{rounded} XP", 'xp'
@@ -62,8 +62,8 @@ module.exports.app = (app) ->
       else if silver > 0
         return "#{silver} <i class='icon-silver'></i>"
 
-    pub.on 'change', 'stats.gp', (captures, args) ->
-      money = captures - args
+    pub.on 'change', 'stats.gp', (value, previous) ->
+      money = value - previous
       return unless !!money # why is this happening? gotta find where stats.gp is being set from (-)habit
       sign = if money < 0 then '-' else '+'
       statsNotification "#{sign} #{showCoins(money)}", 'gp'
@@ -75,13 +75,13 @@ module.exports.app = (app) ->
         statsNotification "+ #{showCoins(bonus)}  Streak Bonus!"
         model.del('_page.tmp.streakBonus')
 
-    pub.on 'change', 'items.*', (item, after, before) ->
-      if item in ['armor','weapon','shield','head'] and +after < +before
-        item = 'helm' if item is 'head' # don't want to day "lost a head"
+    pub.on 'change', 'items.*', (item, value, previous) ->
+      if item in ['armor','weapon','shield','head'] and +value < +previous
+        item = 'helm' if item is 'head' # don't want to say "lost a head"
         statsNotification "<i class='icon-death'></i> Respawn!", "death"
 
-    pub.on 'change', 'stats.lvl', (captures, args) ->
-      if captures > args
+    pub.on 'change', 'stats.lvl', (value, previous) ->
+      if value > previous
         statsNotification '<i class="icon-chevron-up"></i> Level Up!', 'lvl'
 
   ###
