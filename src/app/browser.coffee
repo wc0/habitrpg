@@ -123,34 +123,7 @@ module.exports.app = (app) ->
           trigger: "hover"
           content: "This multiplies its point value. Use sparingly, rely instead on our organic value-adjustment algorithms. But some tasks are grossly more valuable (Write Thesis vs Floss Teeth). Click for more info."
 
-      # ----------------
-      # Setup jQuery UI Sortable
-      # ----------------
-      setupSortable: ->
-        model = @model
-        return if (model.get('_session.flags.isMobile') is true) #don't do sortable on mobile
-        async.nextTick ->
-          ['habit', 'daily', 'todo', 'reward'].forEach (type) ->
-            from = null
-            list = model.at "_page.lists.tasks.#{model.get('_session.userId')}.#{type}s"
-            ul = $("ul.#{type}s")
-            ul.sortable
-              dropOnEmpty: false
-              cursor: "help"
-              items: "li"
-              scroll: true
-              axis: 'y'
-              start: (e, ui) =>
-                item = ui.item[0]
-                from = ul.children().index(item)
-              update: (e, ui) =>
-                item = ui.item[0]
-                to = ul.children().index(item)
-                # Use the Derby ignore option to suppress the normal move event
-                # binding, since jQuery UI will move the element in the DOM.
-                # Also, note that refList index arguments can either be an index
-                # or the item's id property
-                list.pass(ignore: item.id).move from, to
+
 
       # ----------------
       # Setup Tour
@@ -210,16 +183,6 @@ module.exports.app = (app) ->
       # ----------------
       initStickyHeader: -> $('.header-wrap').sticky({topSpacing:0})
 
-      #  ----------------
-      #  Setup Date Popups
-      #  ----------------
-      setupDatepicker: ->
-        model = @model
-        $('.datepicker').datepicker({autoclose:true, todayBtn:true})
-        .on 'changeDate', (ev) ->
-            #for some reason selecting a date doesn't fire a change event on the field, meaning our changes aren't saved
-            model.at(ev.target).set 'date', moment(ev.date).format('MM/DD/YYYY')
-
       # ----------------
       # External Scripts
       #  JS files not needed right away (google charts) or entirely optional (analytics)
@@ -262,12 +225,10 @@ module.exports.app = (app) ->
   ###
   app.on 'render', (ctx) ->
     #restoreRefs(model)
+    app.browser.getExternalScripts()
     unless @model.get('_session.flags.isMobile') is true
-      app.browser.setupSortable()
       app.browser.setupTooltips()
       app.browser.setupTour()
-      app.browser.setupDatepicker()
       app.browser.initStickyHeader()
-    app.browser.getExternalScripts()
 
 

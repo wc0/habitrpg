@@ -52,6 +52,43 @@ module.exports.app = (app) ->
     direction = if completed then 'up' else 'down'
     score(app.model, i, direction, true)
 
+  app.on 'render', (ctx) ->
+    model = @model
+    unless model.get('_session.flags.isMobile') is true
+      #  ----------------
+      #  Setup Date Popups
+      #  ----------------
+      $('.datepicker').datepicker({autoclose:true, todayBtn:true})
+      .on 'changeDate', (ev) ->
+          #for some reason selecting a date doesn't fire a change event on the field, meaning our changes aren't saved
+          model.at(ev.target).set 'date', moment(ev.date).format('MM/DD/YYYY')
+
+      # ----------------
+      # Setup jQuery UI Sortable
+      # ----------------
+      async.nextTick ->
+        ['habit', 'daily', 'todo', 'reward'].forEach (type) ->
+          from = null
+          list = model.at "_page.lists.tasks.#{model.get('_session.userId')}.#{type}s"
+          ul = $("ul.#{type}s")
+          ul.sortable
+            dropOnEmpty: false
+            cursor: "help"
+            items: "li"
+            scroll: true
+            axis: 'y'
+            start: (e, ui) ->
+              item = ui.item[0]
+              from = ul.children().index(item)
+            update: (e, ui) ->
+              item = ui.item[0]
+              to = ul.children().index(item)
+              # Use the Derby ignore option to suppress the normal move event
+              # binding, since jQuery UI will move the element in the DOM.
+              # Also, note that refList index arguments can either be an index
+              # or the item's id property
+              list.pass(ignore: item.id).move from, to
+
   app.fn
     tasks:
 
