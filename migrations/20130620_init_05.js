@@ -54,6 +54,8 @@ db.users.find(registered).forEach(function(user){
         if (!!k && !_.contains(_.keys(v),'$spec')) acc[k] = v;
     })
 
+    user.flags.newStuff = 'show';
+
     var pub = {};
     [
         '_id',
