@@ -40,7 +40,7 @@ module.exports.transformForDerby = transformForDerby = (user) ->
     else if k in properties.priv then obj.priv[k] = v
     true
   toObj = (arr) -> _.object _.pluck(arr, 'id'), arr
-  obj.priv.tasks = toObj user.habits.concat(user.dailys).concat(user.todos).concat(user.rewards)
+  obj.priv.tasks = toObj (user.habits ? []).concat(user.dailys ? []).concat(user.todos ? []).concat(user.rewards ? [])
   obj.priv.ids =
     habits: _.pluck user.habits, 'id'
     dailys: _.pluck user.dailys, 'id'

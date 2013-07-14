@@ -82,9 +82,10 @@ validateTask = (req, res, next) ->
   newTask = { type, text, notes, value, up, down, completed } = req.body
 
   # If we're updating, get the task from the user
-  if req.method is 'PUT' or req.method is 'DELETE'
+  if req.method in ['PUT', 'DELETE']
     task = req.gets.priv.tasks[req.params.id]
-    return res.json 400, err: "No task found." if _.isEmpty(task)
+    #console.log {deleteTask: task} if req.method is 'DELETE'
+    return res.json 400, err: "No task found." unless task
     # Strip for now
     type = undefined
     delete newTask.type
@@ -104,8 +105,7 @@ validateTask = (req, res, next) ->
     when 'daily', 'todo'
       newTask.completed = false unless typeof completed is 'boolean'
 
-  _.extend task, newTask
-  req.task = task
+  req.task = _.defaults task, newTask
   next()
 
 ###
@@ -134,8 +134,7 @@ updateTasks = (tasks, req) ->
       if task.del
         deleted = ats.$priv.del "tasks.#{task.id}", ->
           #wait for deletion and use info from "previous" in case they didn't pass up type, which the following requires
-          console.log {deleted}
-          if (i = _.findIndex ats.$priv.get("ids.#{deleted.type}s"), {id: deleted.id}) != -1
+          if ~(i = _.findIndex ats.$priv.get("ids.#{deleted.type}s"), {id: deleted.id})
             ats.$priv.remove("ids.#{deleted.type}s", i, 1)
         task = deleted: true
       else
@@ -173,7 +172,6 @@ router.get '/user/tasks', auth, (req, res) ->
 
   types = if /^(habit|todo|daily|reward)$/.test(req.query.type) then [req.query.type]
   else ['habit','todo','daily','reward']
-  console.log {types}
 
   res.json 200, _.toArray _.where(req.ats.$priv.get('tasks'), (t) ->t.type in types)
 
@@ -181,17 +179,17 @@ router.get '/user/tasks', auth, (req, res) ->
   This is called form deprecated.coffee's score function, and the req.headers are setup properly to handle the login
 ###
 scoreTask = (req, res, next) ->
-  {taskId, direction} = req.params
+  {tid, direction} = req.params
   {title, service, icon, type} = req.body
   type ?= 'habit'
 
   # Send error responses for improper API call
-  return res.send(500, ':taskId required') unless taskId
+  retuern res.send(500, ':tid required') unless tid
   return res.send(500, ":direction must be 'up' or 'down'") unless direction in ['up','down']
 
   {ats, uobj} = req
 
-  existingTask = ats.$priv.at "tasks.#{taskId}"
+  existingTask = ats.$priv.at "tasks.#{tid}"
   # TODO add service & icon to task
   # If task exists, set it's compltion
   if existingTask.get()
@@ -199,9 +197,9 @@ scoreTask = (req, res, next) ->
     existingTask.set 'completed', (direction is 'up') if /^(daily|todo)$/.test existingTask.get('type')
   else
     task =
-      id: taskId
+      id: tid
       type: type
-      text: (title || taskId)
+      text: (title || tid)
       value: 0
       notes: "This task was created by a third-party service. Feel free to edit, it won't harm the connection to that service. Additionally, multiple services may piggy-back off this task."
 
@@ -216,19 +214,18 @@ scoreTask = (req, res, next) ->
     ats.$priv.push "ids.#{type}", task.id
 
   paths = {}
-  tobj = _.where uobj.habits.concat(uobj.todos.concat(uobj.dailys.concat(uobj.rewards))), {id:taskId}
-  console.log {uobj, tobj}
-  delta = algos.score(req.uobj, tobj, direction, {paths})
+  tobj = _.find (uobj.habits ? []).concat(uobj.todos ? []).concat(uobj.dailys ? []).concat(uobj.rewards ? []), {id:tid}
+  delta = algos.score(uobj, tobj, direction, {paths})
   u.setDiff req.getModel(), req.uobj, paths, cb: ->
     result = ats.$pub.get('stats')
     result.delta = delta
     res.json result
 
 ###
-  POST /user/tasks/:taskId/:direction
+  POST /user/tasks/:tid/:direction
 ###
-router.post '/user/task/:taskId/:direction', auth, scoreTask
-router.post '/user/tasks/:taskId/:direction', auth, scoreTask
+router.post '/user/task/:tid/:direction', auth, scoreTask
+router.post '/user/tasks/:tid/:direction', auth, scoreTask
 
 ###
   TODO POST /user
@@ -251,14 +248,13 @@ router.put '/user', auth, (req, res) ->
 
   # acceptable attributes
   paths = {}
-  ['flags', 'history', 'items', 'preferences', 'profile', 'stats', 'lastCron'].forEach (attr) ->
+  "flags history items preferences profile stats lastCron".split(' ').forEach (attr) ->
     paths[attr] = true if partialUser[attr]?
   u.setDiff(req.getModel(), partialUser, paths)
 
   updateTasks(partialUser.tasks, req) if partialUser.tasks?
 
-  uobj = u.transformForAPI ats.$pub.get(), ats.$priv.get()
-  res.json 201, uobj
+  res.json 201, u.transformForAPI(req.ats.$pub.get(), req.ats.$priv.get())
 
 module.exports = router
 module.exports.auth = auth
