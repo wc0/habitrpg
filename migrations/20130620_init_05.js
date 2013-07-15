@@ -5,6 +5,18 @@
 db.sessions.drop();
 db.myDupesCollection.drop();
 
+// Add indices
+db.usersPrivate.ensureIndex( { _id: 1, apiToken: 1 } )
+db.groups.ensureIndex( { members: 1 } )
+db.groups.ensureIndex( { type: 1 } )
+db.groups.ensureIndex( { type: 1, privacy: 1 } )
+
+// FIXME this should be in derby-auth, but it's throwing errors when performed via mongoskin
+// FIXME how to throw an error for unique:true failures?
+db.auths.ensureIndex( { 'facebook.id': 1 }/*, {unique: true}*/ )
+db.auths.ensureIndex( { 'local.username': 1 }/*, {unique: true}*/ )
+db.auths.ensureIndex( { 'local.username': 1, 'local.hashed_password': 1 } )
+
 var un_registered = {
         "auth.local": {$exists: false},
         "auth.facebook": {$exists: false}
@@ -12,21 +24,26 @@ var un_registered = {
 
     registered = {
         $or: [
-            { 'auth.local': { $exists: true }},
-            { 'auth.facebook': { $exists: true }}
+            { 'auth.local.username': { $exists: true }},
+            { 'auth.facebook.id': { $exists: true }}
         ]
     };
+
+// Note we leave users with {auth.local $or auth.facebook} but no {auth.local.username $or auth.facebook.id} so
+// we can manually sort them out later.
 
 // we're completely doing away with staging users. too difficult to keep up with now, with migrations being an issue, etc
 db.users.remove(un_registered);
 
+// We add an ascending sort by last cron, because there are some wonky accounts that have duplicates, and we want
+// to override previous instances with the most recent version
+//db.users.find(registered).sort({lastCron:1}).forEach(function(user){
+
+
 db.users.find(registered).forEach(function(user){
     var uid = user._id,
-        auth = user.auth,
         priv = {},
         pub = {};
-
-    auth._id = uid;
 
     user.ids = {};
     ['habit','daily','todo','reward'].forEach(function(type){
@@ -86,24 +103,8 @@ db.users.find(registered).forEach(function(user){
         priv[attr] = user[attr];
     });
 
-    try {
-        db.auths.insert(auth);
-        db.usersPrivate.insert(priv);
-        db.usersPublic.insert(pub);
-        db.users.remove({_id: uid});
-    } catch (err) {
-        printjson({error: uid});
-    }
-
+    db.auths.insert(_.defaults({_id:uid}, user.auth));
+    db.usersPrivate.insert(priv);
+    db.usersPublic.insert(pub);
+    db.users.remove({_id: uid});
 })
-
-// Add indices
-db.usersPrivate.ensureIndex( { _id: 1, apiToken: 1 }, {background: true} )
-db.groups.ensureIndex( { members: 1 }, {background: true} )
-db.groups.ensureIndex( { type: 1 }, {background: true} )
-db.groups.ensureIndex( { type: 1, privacy: 1 }, {background: true} )
-
-// FIXME this should be in derby-auth, but it's throwing errors when performed via mongoskin
-db.auths.ensureIndex( { 'facebook.id': 1 }, {background: true} )
-db.auths.ensureIndex( { 'local.username': 1 }, {background: true} )
-db.auths.ensureIndex( { 'local.username': 1, 'local.hashed_password': 1 }, {background: true} )
