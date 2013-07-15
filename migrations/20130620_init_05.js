@@ -21,6 +21,12 @@ var un_registered = {
 db.users.remove(un_registered);
 
 db.users.find(registered).forEach(function(user){
+    var uid = user._id,
+        auth = user.auth,
+        priv = {},
+        pub = {};
+
+    auth._id = uid;
 
     user.ids = {};
     ['habit','daily','todo','reward'].forEach(function(type){
@@ -42,11 +48,7 @@ db.users.find(registered).forEach(function(user){
                 user.profile.name = !!fb._raw ? fb.name.givenName + " " + fb.name.familyName : fb.name;
             }
         } else {
-            try {
-                user.profile.name = user.auth.local.username;
-            } catch (err) {
-                printjson(user.auth);
-            }
+            user.profile.name = user.auth.local.username;
         }
     }
 
@@ -56,9 +58,7 @@ db.users.find(registered).forEach(function(user){
 
     user.flags.newStuff = 'show';
 
-    var pub = {};
-    [
-        '_id',
+    [   '_id',
         'achievements',
         'backer',       // #locked
         'invitations',  // #writeable
@@ -71,9 +71,7 @@ db.users.find(registered).forEach(function(user){
         pub[attr] = user[attr];
     });
 
-    var priv = {};
-    [
-        '_id',
+    [    '_id',
         'apiToken',
         'balance',      // #locked
         'ids',
@@ -86,18 +84,15 @@ db.users.find(registered).forEach(function(user){
         'tasks'
     ].forEach(function(attr){
         priv[attr] = user[attr];
-    })
-
-    var auth = user.auth;
-    auth._id = user._id
+    });
 
     try {
         db.auths.insert(auth);
         db.usersPrivate.insert(priv);
         db.usersPublic.insert(pub);
-        db.users.remove({_id: user._id});
+        db.users.remove({_id: uid});
     } catch (err) {
-        printjson({error: user._id});
+        printjson({error: uid});
     }
 
 })
