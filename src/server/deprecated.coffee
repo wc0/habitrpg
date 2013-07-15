@@ -27,11 +27,10 @@ router.get '/v1/users/:uid/calendar.ics', (req, res) ->
   {apiToken} = req.query
 
   model = req.getModel()
-  query = model.query('users').withIdAndToken(uid, apiToken)
-  query.fetch (err, result) ->
+  $q = model.query 'usersPrivate', {_id: uid, apiToken, $limit: 1}
+  $q.fetch (err) ->
     return res.send(500, err) if err
-    tasks = result.get('tasks')
-    #      tasks = result[0].tasks
+    tasks = $q.get()[0]?.tasks ? []
     tasksWithDates = _.filter tasks, (task) -> !!task.date
     return res.send(500, "No events found") if _.isEmpty(tasksWithDates)
 
