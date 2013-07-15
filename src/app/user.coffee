@@ -174,7 +174,8 @@ module.exports.app = (app) ->
           algos.cron uobj, {paths}
           preenUserHistory uobj, {paths}
           if _.size(paths) > 0
-            if (delete paths['stats.hp'])? # we'll set this manually so we can get a cool animation
+            if paths['stats.hp'] # we'll set this manually so we can get a cool animation
+              delete paths['stats.hp']
               hp = uobj.stats.hp
               setTimeout =>
                 # we need to reset dom - too many changes have been made and won't it breaks dom listeners.
