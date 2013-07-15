@@ -8,12 +8,12 @@ app
   .use(require 'derby-auth/components/index.coffee')
 
 # Translations
-i18n = require './i18n.coffee'
-i18n.localize app,
-  availableLocales: ['en', 'he', 'bg', 'nl']
-  defaultLocale: 'en'
-  urlScheme: false
-  checkHeader: true
+#i18n = require './i18n.coffee'
+#i18n.localize app,
+#  availableLocales: ['en', 'he', 'bg', 'nl']
+#  defaultLocale: 'en'
+#  urlScheme: false
+#  checkHeader: true
 
 require('./viewHelpers.coffee')(app.view)
 _ = require('lodash')
