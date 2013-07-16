@@ -1,6 +1,4 @@
 nconf = require 'nconf'
-{helpers} = require('habitrpg-shared')
-user = require '../app/user.coffee'
 
 module.exports.view = (req, res, next) ->
   model = req.getModel()
