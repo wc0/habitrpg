@@ -278,7 +278,7 @@ api.registerUser = (req, res, next) ->
   Get User
 ###
 api.getUser = (req, res, next) ->
-  {user} = res.locals
+  user = res.locals.user.toJSON()
 
   user.stats.toNextLevel = algos.tnl user.stats.lvl
   user.stats.maxHealth = 50
