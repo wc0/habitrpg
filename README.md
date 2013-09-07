@@ -11,7 +11,7 @@ Code is licensed under GNU GPL v3. Content is licensed under CC-BY-SA 3.0.
 See the LICENSE file for details.
 
 ##Credits
-Content comes from Mozilla's [BrowserQuest](http://browserquest.mozilla.org/) 
+Content comes from Mozilla's [BrowserQuest](http://browserquest.mozilla.org/)
 
  * [Mozilla](http://mozilla.org)
  * [Little Workshop](http://www.littleworkshop.fr)
