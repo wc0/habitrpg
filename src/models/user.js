@@ -3,22 +3,62 @@ var Schema = mongoose.Schema;
 var helpers = require('habitrpg-shared/script/helpers');
 var _ = require('lodash');
 
-var UserSchema = new Schema({
-  _id: {
-    type: String,
-    'default': helpers.uuid
-  },
-  apiToken: {
-    type: String,
-    'default': helpers.uuid
-  },
+/**
+ * Define task schemas. Note they're not Mongoose Schemas, else they'd be stored in separate collection (which we
+ * don't want). Instead we define them up here, extend them with particular properties, then nest them in user.*
+ */
+var taskSchema = {
+  _id: {type: String, 'default': helpers.uuid},
+  notes: String,
+  tags: {type: Schema.Types.Mixed, 'default': {}},
+  text: String,
+  type: {type: String, 'default': 'habit'}
+  value: {type: Number, 'default': 0},
+  priority: {type: String, 'default': '!'},
+}
 
-  //We want to know *every* time an object updates. Mongoose uses __v to designate when an object contains arrays which
+var history = [{date: Date, value: Number, 'default': Date.now}];
+
+var habitSchema = new Schema(_.defaults({
+  history: history,
+  up: {type: Boolean, 'default': true},
+  down: {type: Boolean, 'default': true},
+  type: {type: String, 'default': 'habit'},
+}, taskSchema));
+
+var dailySchema = new Schema(_.defaults({
+  history: history,
+  repeat: {type: Schema.Types.Mixed, 'default': {m:1,t:1,w:1,th:1,f:1,s:1,su:1}}, // TODO verify this works
+  streak: Number,
+  completed: {type: Boolean, 'default': false},
+  type: {type: String, 'default': 'daily'},
+}, taskSchema));
+
+var todoSchema = new Schema(_.defaults({
+  type: {type: String, 'default': 'todo'},
+  completed: {type: Boolean, 'default': false},
+}, taskSchema));
+
+var rewardSchema = new Schema(_.defaults({
+  type: {type: String, 'default': 'reward'},
+  value: {type: Number, 'default': 20},
+}, taskSchema));
+
+_.each([habitSchema, dailySchema, todoSchema, rewardSchema], function(schema){
+  schema.virtual('id').get(function () { return this._id });
+})
+
+/**
+ * Define user schema
+ */
+var UserSchema = new Schema({
+  _id: {type: String, 'default': helpers.uuid},
+  apiToken: {type: String, 'default': helpers.uuid},
+
+  // We want to know *every* time an object updates. Mongoose uses __v to designate when an object contains arrays which
   // have been updated (http://goo.gl/gQLz41), but we want *every* update
-  _v: {
-    type: Number,
-    'default': 0
-  },
+  _v: {type: Number, 'default': 0},
+
   achievements: {
     originalUser: Boolean,
     helpedHabit: Boolean,
@@ -35,10 +75,7 @@ var UserSchema = new Schema({
       username: String
     },
     timestamps: {
-      created: {
-        type: Date,
-        'default': Date.now
-      },
+      created: {type: Date, 'default': Date.now},
       loggedin: Date
     }
   },
@@ -52,10 +89,6 @@ var UserSchema = new Schema({
   },
 
   balance: Number,
-  habitIds: Array,
-  dailyIds: Array,
-  todoIds: Array,
-  rewardIds: Array,
   filters: {type: Schema.Types.Mixed, 'default': {}},
 
   flags: {
@@ -71,21 +104,11 @@ var UserSchema = new Schema({
     rest: {type: Boolean, 'default': false} // fixme - change to preferences.resting once we're off derby
   },
   history: {
-    exp: [
-      {
-        date: Date,
-        value: Number
-      }
-    ],
-    todos: [
-      {
-        data: Date,
-        value: Number
-      }
-    ]
+    exp:    [{date: Date, value: Number}],
+    todos:  [{data: Date,value: Number}]
   },
-  /* FIXME remove?*/
 
+  // FIXME remove?
   invitations: {
     guilds: {type: Array, 'default': []},
     party: Schema.Types.Mixed
@@ -96,56 +119,37 @@ var UserSchema = new Schema({
     head: Number,
     shield: Number,
 
-    /*FIXME - tidy this up, not the best way to store current pet*/
-
+    // FIXME - tidy this up, not the best way to store current pet
     currentPet: {
-      /*Cactus*/
-
-      text: String,
-      /*Cactus*/
-
-      name: String,
-      /*3*/
-
-      value: Number,
-      /*"Find a hatching potion to pour on this egg, and one day it will hatch into a loyal pet.",*/
-
-      notes: String,
-      /*Skeleton*/
-
-      modifier: String,
-      /*Cactus-Skeleton*/
-
-      str: String
+      text: String, //Cactus
+      name: String, //Cactus
+      value: Number, //3
+      notes: String, //"Find a hatching potion to pour on this egg, and one day it will hatch into a loyal pet."
+      modifier: String, //Skeleton
+      str: String //Cactus-Skeleton
     },
 
-    eggs: [
-      {
+    eggs: [{
         dialog: String, //You've found a Wolf Egg! Find a hatching potion to pour on this egg, and one day it will hatch into a loyal pet
         name: String, // Wolf
         notes: String, //Find a hatching potion to pour on this egg, and one day it will hatch into a loyal pet.
         text: String, // Wolf
         //type: String, //Egg // this is forcing mongoose to return object as "[object Object]", but I don't think this is needed anyway?
         value: Number //3
-      }
-    ],
+    }],
     hatchingPotions: Array, //["Base", "Skeleton",...]
     lastDrop: {
       date: {type: Date, 'default': Date.now},
       count: {type: Number, 'default': 0}
     },
-    /* ["BearCub-Base", "Cactus-Base", ...]*/
 
-    pets: Array
+    pets: Array // ["BearCub-Base", "Cactus-Base", ...]
   },
-  /*FIXME store as Date?*/
 
-  lastCron: {
-    type: Date,
-    'default': Date.now
-  },
-  /* FIXME remove?*/
+  //FIXME store as Date?
+  lastCron: {type: Date, 'default': Date.now},
 
+  // FIXME remove?
   party: {
     //party._id //FIXME make these populate docs?
     current: String, // party._id
@@ -175,86 +179,41 @@ var UserSchema = new Schema({
     gp: Number,
     lvl: Number
   },
-  tags: [
-    {
-      /* FIXME use refs?*/
+  tags: [{
+      // FIXME use refs?
       id: String,
       name: String
-    }
-  ],
-  /*
-  # We can't define `tasks` until we move off Derby, since Derby requires dictionary of objects. When we're off, migrate
-  # to array of subdocs
-  */
+  }],
 
-  tasks: Schema.Types.Mixed
-  /*
-  # history: {date, value}
-  # id
-  # notes
-  # tags { "4ddf03d9-54bd-41a3-b011-ca1f1d2e9371" : true },
-  # text
-  # type
-  # up
-  # down
-  # value
-  # completed
-  # priority: '!!'
-  # repeat {m: true, t: true}
-  # streak
-  */
+  habits: habitSchema,
+  dailys: dailySchema,
+  todos: todoSchema,
+  reward: rewardSchema,
 
-}, {
-  strict: true
-});
+}, {strict: true});
 
-/**
-  Derby requires a strange storage format for somethign called "refLists". Here we hook into loading the data, so we
-  can provide a more "expected" storage format for our various helper methods. Since the attributes are passed by reference,
-  the underlying data will be modified too - so when we save back to the database, it saves it in the way Derby likes.
-  This will go away after the rewrite is complete
-*/
-function transformTaskLists(doc) {
-  _.each(['habit', 'daily', 'todo', 'reward'], function(type) {
-    // we use _.transform instead of a simple _.where in order to maintain sort-order
-    doc[type + "s"] = _.reduce(doc[type + "Ids"], function(m, tid) {
-      if (!doc.tasks[tid]) return m; // FIXME tmp hotfix, people still have null tasks?
-      if (!doc.tasks[tid].tags) doc.tasks[tid].tags = {}; // FIXME remove this when we switch tasks to subdocs and can define tags default in schema
-      m.push(doc.tasks[tid]);
-      return m;
-    }, []);
-  });
-}
-
-UserSchema.post('init', function(doc) {
-  transformTaskLists(doc);
-});
 
 UserSchema.methods.toJSON = function() {
   var doc = this.toObject();
   doc.id = doc._id;
-  transformTaskLists(doc); // we need to also transform for our server-side routes
-
-  // Remove some unecessary data as far as client consumers are concerned
-  //_.each(['habit', 'daily', 'todo', 'reward'], function(type) {
-  //  delete doc["#{type}Ids"]
-  //});
-  //delete doc.tasks
   doc.filters = {};
   doc._tmp = this._tmp; // be sure to send down drop notifs
-
   return doc;
 };
 
-/*
-# FIXME - since we're using special @post('init') above, we need to flag when the original path was modified.
-# Custom setter/getter virtuals?
+/**
+  FIXME - since we're using special @post('init') above, we need to flag when the original path was modified.
+  Custom setter/getter virtuals?
 */
 UserSchema.pre('save', function(next) {
   this.markModified('tasks');
   //our own version incrementer
   this._v++;
   next();
+});
+
+userSchema.virtual('tasks').get(function () {
+  return this.habits.concat(this.dailys).concat(this.todos).concat(this.rewards);
 });
 
 module.exports.schema = UserSchema;

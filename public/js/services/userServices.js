@@ -18,11 +18,7 @@ angular.module('userServices', []).
           online: false
         },
         settings = {}, //habit mobile settings (like auth etc.) to be stored here
-        user = {}; // this is stored as a reference accessible to all controllers, that way updates propagate
-
-      //first we populate user with schema
-      _.extend(user, window.habitrpgShared.helpers.newUser());
-      user.apiToken = user._id = ''; // we use id / apitoken to determine if registered
+        user = {apiToken: '', _id: ''}; // this is stored as a reference accessible to all controllers, that way updates propagate
 
       //than we try to load localStorage
       if (localStorage.getItem(STORAGE_USER_ID)) {
