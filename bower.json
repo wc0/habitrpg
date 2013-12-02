@@ -37,7 +37,8 @@
     "JavaScriptButtons": "git://github.com/paypal/JavaScriptButtons.git#master",
     "Angular-At-Directive": "git://github.com/snicker/Angular-At-Directive#master",
     "js-emoji": "git://github.com/snicker/js-emoji#master",
-    "gemoji": "git://github.com/github/gemoji"
+    "gemoji": "git://github.com/github/gemoji",
+    "angular-dragdrop": "git://github.com/codef0rmer/angular-dragdrop#v1.0.5"
   },
   "resolutions": {
     "jquery": "~2.0.3",
