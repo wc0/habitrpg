@@ -71,3 +71,7 @@ script(id='modals/login.html', type='text/ng-template')
               | .
           .form-group
             input.btn.btn-primary(type='submit', value=env.t('register'))
+          .checkbox(style='position:absolute;right:0px;bottom:0px;opacity:0.1')
+            label
+              input(type='checkbox', ng-model='registerVals.wondercon')
+

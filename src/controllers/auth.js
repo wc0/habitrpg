@@ -95,7 +95,7 @@ api.registerUser = function(req, res, next) {
       user = new User(newUser);
 
       // temporary for conventions
-      if (req.subdomains[0] == 'con') {
+      if (req.body.wondercon) {
         _.each(user.dailys, function(h){
           h.repeat = {m:false,t:false,w:false,th:false,f:false,s:false,su:false};
         })

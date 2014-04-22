@@ -24,7 +24,7 @@ api.getCoupons = function(req,res,next) {
   Coupon.find({},{}, options, function(err,coupons){
     //res.header('Content-disposition', 'attachment; filename=coupons.csv');
     res.csv([['code']].concat(_.map(coupons, function(c){
-      return ['HabitRPG - To redeem your code, go to goo.gl/azsGaH and enter '+c._id];
+      return ['HabitRPG Coupon: '+c._id+'\rhabitrpg.com/#/options/settings/coupon\r'];
     })));
   });
 }
