@@ -19,3 +19,4 @@ angular.module('habitrpg')
       return (gp > 999) ? (Math.floor(gp / 100) / 10.0 + 'k') : gp;
     }
   })
+  .filter('toArray', function(){return _.toArray})

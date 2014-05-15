@@ -52,10 +52,8 @@ habitrpg.directive('habitrpgSortable', ['User', function(User) {
         ui.item.data('startIndex', ui.item.index());
       },
       stop: function (event, ui) {
-        var taskType = angular.element(ui.item[0]).scope().task.type + 's';
-        var startIndex = ui.item.data('startIndex');
-        var task = User.user[taskType][startIndex];
-        User.user.ops.sortTask({params:{id:task.id},query:{from:startIndex, to:ui.item.index()}});
+        var task = angular.element(ui.item[0]).scope().task;
+        User.user.ops.sortTask({params:{id:task.id},query:{from:ui.item.data('startIndex'), to:ui.item.index()}});
       }
     });
   }

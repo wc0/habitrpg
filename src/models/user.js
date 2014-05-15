@@ -9,6 +9,10 @@ var Schema = mongoose.Schema;
 var shared = require('habitrpg-shared');
 var _ = require('lodash');
 var TaskSchemas = require('./task');
+var Habit = TaskSchemas.HabitModel,
+  Daily = TaskSchemas.DailyModel,
+  Todo = TaskSchemas.TodoModel,
+  Reward = TaskSchemas.RewardModel
 var Challenge = require('./challenge').model;
 
 // User Schema
@@ -311,10 +315,11 @@ var UserSchema = new Schema({
 
   challenges: [{type: 'String', ref:'Challenge'}],
 
-  habits:   {type:[TaskSchemas.HabitSchema]},
-  dailys:   {type:[TaskSchemas.DailySchema]},
-  todos:    {type:[TaskSchemas.TodoSchema]},
-  rewards:  {type:[TaskSchemas.RewardSchema]},
+  habits:       Schema.Types.Mixed,
+  dailys:       Schema.Types.Mixed,
+  todos:        Schema.Types.Mixed,
+  completed:    Schema.Types.Mixed,
+  rewards:      Schema.Types.Mixed,
 
   extra: Schema.Types.Mixed
 
@@ -349,13 +354,13 @@ UserSchema.post('init', function(doc){
 })
 
 UserSchema.pre('save', function(next) {
+  var self = this;
 
   // Populate new users with default content
   if (this.isNew){
     //TODO for some reason this doesn't work here: `_.merge(this, shared.content.userDefaults);`
-    var self = this;
     _.each(['habits', 'dailys', 'todos', 'rewards', 'tags'], function(taskType){
-      self[taskType] = _.map(shared.content.userDefaults[taskType], function(task){
+      self[taskType] = _.transform(shared.content.userDefaults[taskType], function(m,task){
         var newTask = _.cloneDeep(task);
 
         // Render task's text and notes in user's language
@@ -375,12 +380,23 @@ UserSchema.pre('save', function(next) {
           }
         }
 
-        return newTask;
-      });
+        var type = newTask.type;
+        var validated = new (type=='habit' ? Habit : type=='daily' ? Daily : type=='todo' ? Todo : Reward)(newTask);
+        m[validated.id] = validated;
+        return m;
+      }, {});
     });
 
     this.preferences.language = undefined;
   }
+
+  // Since you can't have a dictionary of subdocuments (only an array), this is our workaround to use TaskSchemas
+  // to validate on save (see http://goo.gl/9hpLAh)
+  _.each({habits:Habit,dailys:Daily,todos:Todo,rewards:Reward},function(k,model){
+    _.each(self[k], function(t){
+      t = new model(t);
+    });
+  });
 
   //this.markModified('tasks');
   if (_.isNaN(this.preferences.dayStart) || this.preferences.dayStart < 0 || this.preferences.dayStart > 23) {

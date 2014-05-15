@@ -3,6 +3,10 @@ var Schema = mongoose.Schema;
 var shared = require('habitrpg-shared');
 var _ = require('lodash');
 var TaskSchemas = require('./task');
+var Habit = TaskSchemas.HabitModel,
+  Daily = TaskSchemas.DailyModel,
+  Todo = TaskSchemas.TodoModel,
+  Reward = TaskSchemas.RewardModel
 
 var ChallengeSchema = new Schema({
   _id: {type: String, 'default': shared.uuid},
@@ -10,10 +14,10 @@ var ChallengeSchema = new Schema({
   shortName: String,
   description: String,
   official: {type: Boolean,'default':false},
-  habits:   [TaskSchemas.HabitSchema],
-  dailys:   [TaskSchemas.DailySchema],
-  todos:    [TaskSchemas.TodoSchema],
-  rewards:  [TaskSchemas.RewardSchema],
+  habits:   Schema.Types.Mixed,
+  dailys:   Schema.Types.Mixed,
+  todos:    Schema.Types.Mixed,
+  rewards:  Schema.Types.Mixed,
   leader: {type: String, ref: 'User'},
   group: {type: String, ref: 'Group'},
   timestamp: {type: Date, 'default': Date.now},
@@ -33,6 +37,16 @@ ChallengeSchema.methods.toJSON = function(){
   doc._isMember = this._isMember;
   return doc;
 }
+
+ChallengeSchema.pre('save',function(next){
+  var self = this;
+  _.each({habits:Habit,dailys:Daily,todos:Todo,rewards:Reward},function(k,model){
+    _.each(self[k], function(t){
+      t = new model(t);
+    });
+  });
+  next();
+})
 
 // --------------
 // Syncing logic
